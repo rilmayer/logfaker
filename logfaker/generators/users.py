@@ -79,7 +79,7 @@ class UserGenerator:
             messages=[{
                 "role": "system",
                 "content": (
-                    f"Generate a third person's brief introduction of a user profile explaining how they use '{self.config.service_type}' in {self.config.language}."
+                    f"Generate a brief third-person introduction of a user profile explaining how they use '{self.config.service_type}' in {self.config.language}."
                     f"User is interested in {random.choice(category_names)}."
                 )
             }],
