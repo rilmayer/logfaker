@@ -20,10 +20,15 @@ def mock_openai_response():
                     {"name": "歴史", "description": "歴史関連の書籍"}
                 ]
             }
-        else:  # create_content
+        elif function_name == "create_content":
             arguments = {
                 "title": "人工知能入門",
                 "description": "AIの基礎から応用まで網羅的に解説するガイド"
+            }
+        else:  # create_query
+            arguments = {
+                "query_content": "人工知能の基礎",
+                "category": "テクノロジー"
             }
         
         return MagicMock(
