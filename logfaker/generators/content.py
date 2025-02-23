@@ -121,13 +121,14 @@ class ContentGenerator:
         Raises:
             ContentGenerationError: If count exceeds 1000
         """
-        if reuse_file:
-            contents = CsvImporter.import_content("contents.csv")
-            if contents:
-                self.logger.info(f"Reusing {len(contents)} items from contents.csv")
-                return contents
         if count > 1000:
             raise ContentGenerationError("Cannot generate more than 1000 items")
+            
+        if reuse_file:
+            contents = CsvImporter.import_content("contents.csv")
+            if contents and len(contents) >= count:
+                self.logger.info(f"Reusing {count} items from contents.csv")
+                return contents[:count]
 
         self.logger.info(f"Starting content generation for {self.config.service_type}")
         categories = self._generate_categories()
@@ -135,31 +136,18 @@ class ContentGenerator:
         for cat in categories:
             self.logger.debug(f"Category: {cat.name} - {cat.description}")
 
-        items_per_category = min(10, (count + len(categories) - 1) // len(categories))
-        self.logger.info(f"Generating up to {items_per_category} items per category")
+        # Generate only as many categories as needed
+        categories = categories[:count]
+        self.logger.info(f"Using {len(categories)} categories")
         
-        remaining = count
         contents = []
-        category_idx = 0
-        
-        while remaining > 0 and category_idx < len(categories):
-            category = categories[category_idx]
-            items_to_generate = min(items_per_category, remaining)
-            
-            self.logger.info(f"Generating {items_to_generate} items for category '{category.name}'")
-            for i in range(items_to_generate):
-                content = self._generate_content_for_category(
-                    category=category,
-                    content_id=len(contents) + 1
-                )
-                contents.append(content)
-                remaining -= 1
-                
-                if remaining <= 0:
-                    self.logger.info("Content generation completed")
-                    return contents
-            
-            category_idx += 1
+        for i in range(count):
+            category = categories[i % len(categories)]
+            content = self._generate_content_for_category(
+                category=category,
+                content_id=i + 1
+            )
+            contents.append(content)
             self.logger.info(f"Progress: {len(contents)}/{count} items generated")
         
         self.logger.info("Content generation completed")
