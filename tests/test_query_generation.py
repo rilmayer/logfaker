@@ -55,3 +55,25 @@ def test_multiple_query_generation(mock_openai_client):
         assert query.user_id == user.user_id
         assert query.query_content
         assert query.category
+
+# OpenAI APIを使用してテストする場合は以下のコメントを外して実行
+# if __name__ == "__main__":
+#     import os
+#     import logging
+#     logging.basicConfig(level=logging.INFO)
+#     config = GeneratorConfig(
+#         api_key=os.getenv("OPENAI_API_KEY"),
+#         service_type="図書館の蔵書検索サービス",
+#         language="ja"
+#     )
+#     generator = QueryGenerator(config)
+#     user = UserProfile(
+#         user_id=1,
+#         brief_explanation="技術書が好きなエンジニア",
+#         profession="エンジニア",
+#         preferences=["プログラミング", "AI", "データサイエンス"]
+#     )
+#     queries = generator.generate_queries(user, count=1)
+#     for query in queries:
+#         print(query.query_content)
+#         print(query.category)

@@ -1,6 +1,7 @@
 """Query generation based on user profiles and content."""
 
 import json
+import random
 import logging
 from typing import List, Optional
 
@@ -35,12 +36,12 @@ class QueryGenerator:
         
         functions = [{
             "name": "create_query",
-            "description": "Create search query based on user interests",
+            "description": "Create an assumed realistic search keyword based on user interests",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query_content": {"type": "string"},
-                    "category": {"type": "string"}
+                    "query_content": {"type": "string", "description": "Search keyword"},
+                    "category": {"type": "string", "description": "Theme of the search keyword based on the user needs" }
                 },
                 "required": ["query_content", "category"]
             }
@@ -51,8 +52,8 @@ class QueryGenerator:
             messages=[{
                 "role": "system",
                 "content": (
-                    f"Generate a search query for {self.config.service_type} in {self.config.language}. "
-                    f"User interests: {', '.join(user.preferences)}. "
+                    f"Generate a search query in {self.config.language}. "
+                    f"User interests: {random.choice(user.preferences)}. "
                     f"User background: {user.brief_explanation}"
                 )
             }],
@@ -90,7 +91,7 @@ class QueryGenerator:
     def _create_query_prompt(self, user: UserProfile) -> str:
         """Create a prompt for query generation based on user profile."""
         return (
-            f"Generate a search query for {self.config.service_type} in {self.config.language}. "
-            f"User interests: {', '.join(user.preferences)}. "
+            f"Generate a search query in {self.config.language}. "
+            f"User interests: {random.choice(user.preferences)}. "
             f"User background: {user.brief_explanation}"
         )
