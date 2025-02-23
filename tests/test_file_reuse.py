@@ -80,6 +80,13 @@ def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     
     # Patch the file path for reuse test
     monkeypatch.chdir(tmp_path)
+    
+    # Reset mock and try to generate again with reuse
+    mock_openai_client.reset_mock()
+    reused = generator.generate_users(5, categories, reuse_file=True)
+    assert len(reused) == len(users)
+    assert all(r.user_id == u.user_id for r, u in zip(reused, users))
+    assert all(r.preferences == u.preferences for r, u in zip(reused, users))
 
 def test_output_directory_config(tmp_path):
     """Test that output directory configuration works."""
