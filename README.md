@@ -125,7 +125,7 @@ for user in users:
 exporter = CsvExporter()
 exporter.export_content(contents, "contents.csv")     # コンテンツをCSVに出力
 exporter.export_users(users, "users.csv")            # ユーザープロファイルをCSVに出力
-exporter.export_queries(queries, "queries.csv")      # 検索クエリをCSVに出力
+exporter.export_search_queries(queries, "queries.csv")      # 検索クエリをCSVに出力
 exporter.export_search_logs(search_logs, "logs.csv") # 検索ログをCSVに出力
 
 # 出力されるCSVの例
