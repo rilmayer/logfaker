@@ -2,12 +2,14 @@
 
 import json
 import logging
+from pathlib import Path
 from typing import List, Optional
 
 from openai import OpenAI
 
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import Category, UserProfile
+from logfaker.utils.importer import CsvImporter
 
 
 class UserGenerator:
@@ -80,17 +82,23 @@ class UserGenerator:
         self.logger.debug(f"User interests: {', '.join(user.preferences)}")
         return user
 
-    def generate_users(self, count: int, categories: List[Category]) -> List[UserProfile]:
+    def generate_users(self, count: int, categories: List[Category], reuse_file: bool = True) -> List[UserProfile]:
         """
         Generate multiple user profiles.
 
         Args:
             count: Number of users to generate
             categories: List of available categories to choose interests from
+            reuse_file: If True, try to load from users.csv first
 
         Returns:
             List of UserProfile objects
         """
+        if reuse_file:
+            users = CsvImporter.import_users("users.csv")
+            if users:
+                self.logger.info(f"Reusing {len(users)} profiles from users.csv")
+                return users
         self.logger.info(f"Generating {count} user profiles")
         users = [self.generate_user(categories, i + 1) for i in range(count)]
         self.logger.info(f"Generated {len(users)} user profiles")
