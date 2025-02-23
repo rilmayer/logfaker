@@ -51,8 +51,12 @@ class ElasticsearchEngine(SearchEngine):
                 ]
 
             # Execute search
-            response: Dict[str, Any] = self.client.search(index=self.config.index, body=search_body)  # type: ignore
-            hits = response.get("hits", {}).get("hits", [])
+            # Elasticsearch response typing
+            response = self.client.search(
+                index=self.config.index, body=search_body  # type: ignore[index]
+            )
+            hits_container = response.get("hits", {})  # type: ignore[union-attr]
+            hits = hits_container.get("hits", [])
 
             # Convert results
             return [

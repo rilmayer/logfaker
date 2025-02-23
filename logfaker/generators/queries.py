@@ -26,23 +26,21 @@ class QueryGenerator:
         Returns:
             SearchQuery object
         """
-        # Use user preferences and profession to generate relevant queries
         prompt = self._create_query_prompt(user)
         response = self.client.chat.completions.create(
             model=self.config.ai_model,
             messages=[
-                {"role": "system", "content": "You are a library search assistant."},
+                {"role": "system", "content": "You are a search query generator."},
                 {"role": "user", "content": prompt},
             ],
         )
 
-        # Parse response and create query
-        # This is a placeholder implementation
+        # Use first preference as a simple query
         return SearchQuery(
             query_id=1,  # Will be replaced with actual ID generation
             user_id=user.user_id,
-            query_content="Latest books on AI",
-            category="Technology",
+            query_content=user.preferences[0] if user.preferences else "general",
+            category="General",
         )
 
     def generate_queries(self, user: UserProfile, count: int) -> List[SearchQuery]:
@@ -61,7 +59,6 @@ class QueryGenerator:
     def _create_query_prompt(self, user: UserProfile) -> str:
         """Create a prompt for query generation based on user profile."""
         return (
-            f"Generate a library search query for a {user.age} year old "
-            f"{user.gender} {user.profession} interested in: "
+            f"Generate a simple one or two word search query based on: "
             f"{', '.join(user.preferences)}"
         )

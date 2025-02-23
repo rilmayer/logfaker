@@ -6,18 +6,13 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
-class BookContent(BaseModel):
-    """Model for book content in library catalog."""
+class Content(BaseModel):
+    """Model for content in library catalog."""
 
     content_id: int = Field(description="Unique identifier for the content")
-    title: str = Field(description="Title of the book")
-    description: str = Field(description="Description or summary of the book")
-    category: str = Field(description="Primary category of the book")
-    author: Optional[str] = Field(None, description="Author of the book")
-    publisher: Optional[str] = Field(None, description="Publisher of the book")
-    year: Optional[int] = Field(None, description="Publication year")
-    genre: Optional[str] = Field(None, description="Genre of the book")
-    abstract: Optional[str] = Field(None, description="Detailed abstract of the book")
+    title: str = Field(description="Title of the content")
+    description: str = Field(description="Description or summary of the content")
+    category: str = Field(description="Primary category of the content")
 
 
 class UserProfile(BaseModel):

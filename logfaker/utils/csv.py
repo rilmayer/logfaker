@@ -5,8 +5,7 @@ import json
 from pathlib import Path
 from typing import List, Union
 
-from logfaker.core.models import (BookContent, SearchLog, SearchQuery,
-                                  UserProfile)
+from logfaker.core.models import Content, SearchLog, SearchQuery, UserProfile
 
 
 class CsvExporter:
@@ -24,22 +23,41 @@ class CsvExporter:
                 writer.writerow([query.query_id, query.query_content, query.category])
 
     @staticmethod
-    def export_user_content(
-        contents: List[BookContent],
-        users: List[UserProfile],
+    def export_content(
+        contents: List[Content],
         output_path: Union[str, Path],
     ) -> None:
-        """Export user-generated content to CSV."""
+        """Export content to CSV."""
         with open(output_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["Content ID", "User ID", "User Attributes", "Content"])
-            for content, user in zip(contents, users):
+            writer.writerow(["Content ID", "Title", "Description", "Category"])
+            for content in contents:
                 writer.writerow(
                     [
                         content.content_id,
-                        user.user_id,
-                        user.to_json_str(),
+                        content.title,
                         content.description,
+                        content.category,
+                    ]
+                )
+
+    @staticmethod
+    def export_users(
+        users: List[UserProfile],
+        output_path: Union[str, Path],
+    ) -> None:
+        """Export user profiles to CSV."""
+        with open(output_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["User ID", "Age", "Gender", "Profession", "Preferences"])
+            for user in users:
+                writer.writerow(
+                    [
+                        user.user_id,
+                        user.age,
+                        user.gender,
+                        user.profession,
+                        ", ".join(user.preferences),
                     ]
                 )
 
