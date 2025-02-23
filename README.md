@@ -20,9 +20,10 @@ from logfaker.core.config import LogfakerConfig, GeneratorConfig
 
 config = LogfakerConfig(
     generator=GeneratorConfig(
-        api_key="your-openai-api-key",  # Required: Your OpenAI API key
-        ai_model="gpt-4",               # Optional: Defaults to gpt-4
-        language="en"                   # Optional: Defaults to en
+        api_key="your-openai-api-key",    # Required: OpenAI API key
+        service_type="図書館の蔵書検索サービス",  # Optional: Defaults to "Book search service"
+        language="ja",                     # Optional: Defaults to "en"
+        ai_model="gpt-4"                  # Optional: Defaults to "gpt-4"
     )
 )
 ```
@@ -81,7 +82,7 @@ from logfaker.utils.csv import CsvExporter
 
 # コンテンツジェネレーターの作成
 content_gen = ContentGenerator(config.generator)
-contents = content_gen.generate_contents(count=5)
+contents = content_gen.generate_contents(count=50)  # 5カテゴリ x 10アイテム
 
 # Elasticsearchへのインデックス作成
 es = ElasticsearchEngine(config.search_engine)
@@ -109,22 +110,22 @@ exporter.export_search_logs([search_log], "search_logs.csv")
 
 ## Output Formats
 
-The package generates data in CSV format:
+The package generates data in CSV format (出力形式):
 
 ```csv
-# Content Format
+# Content Format (コンテンツ形式)
 Content ID,Title,Description,Category
 1,"人工知能入門","AIの基礎から応用まで網羅的に解説するガイド","テクノロジー"
 
-# User Profile Format
+# User Profile Format (ユーザープロファイル形式)
 User ID,Brief Explanation,Profession,Preferences
 1001,"最新のテクノロジーと科学に興味を持つ大学院生","学生","人工知能, データサイエンス"
 
-# Search Query Format
+# Search Query Format (検索クエリ形式)
 Query ID,Query Content,Category
 1,"機械学習","テクノロジー"
 
-# Search Log Format
+# Search Log Format (検索ログ形式)
 Query ID,User ID,Search Query,Search Results (JSON),Clicks,CTR
 1,1001,"人工知能","[{\"title\": \"人工知能入門\", \"url\": \"https://library.example.com/book/1\"}]",3,0.6
 ```
