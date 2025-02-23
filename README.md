@@ -50,10 +50,12 @@ config = LogfakerConfig(
    brew services start elastic/tap/elasticsearch-full
    ```
 
-2. Configure Elasticsearch Connection:
+2. Configure and Set Up Index:
    ```python
    from logfaker.core.config import LogfakerConfig, SearchEngineConfig
+   from logfaker.search.elasticsearch import ElasticsearchEngine
 
+   # Configure connection
    config = LogfakerConfig(
        search_engine=SearchEngineConfig(
            host="localhost",           # Elasticsearch host
@@ -63,7 +65,31 @@ config = LogfakerConfig(
            password="your-password"   # Optional: For authentication
        )
    )
+
+   # Set up search engine and index
+   es = ElasticsearchEngine(config.search_engine)
+   if not es.is_healthy():
+       raise RuntimeError("Elasticsearch is not available")
+   
+   # Delete existing index if needed
+   es.setup_index(force=True)  # force=True will delete existing index
    ```
+
+### CSV File Reuse
+
+The package can reuse previously generated content and user profiles from CSV files:
+
+```python
+# Generate content (will reuse contents.csv if it exists)
+contents = content_gen.generate_contents(count=50, reuse_file=True)  # Default: reuse_file=True
+
+# Generate users (will reuse users.csv if it exists)
+users = user_gen.generate_users(count=10, categories=categories, reuse_file=True)
+
+# Force regeneration by setting reuse_file=False
+contents = content_gen.generate_contents(count=50, reuse_file=False)
+users = user_gen.generate_users(count=10, categories=categories, reuse_file=False)
+```
 
 ## Usage Example (使用例)
 
