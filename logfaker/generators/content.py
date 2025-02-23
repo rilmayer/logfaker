@@ -2,6 +2,7 @@
 
 import json
 import logging
+from pathlib import Path
 from typing import List, Optional
 
 from openai import OpenAI
@@ -9,6 +10,7 @@ from openai import OpenAI
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.exceptions import ContentGenerationError
 from logfaker.core.models import Category, Content
+from logfaker.utils.importer import CsvImporter
 
 
 class ContentGenerator:
@@ -105,12 +107,13 @@ class ContentGenerator:
             category=category.name
         )
 
-    def generate_contents(self, count: int) -> List[Content]:
+    def generate_contents(self, count: int, reuse_file: bool = True) -> List[Content]:
         """
         Generate multiple content entries with category-based limits.
 
         Args:
             count: Number of contents to generate (max 1000)
+            reuse_file: If True, try to load from contents.csv first
 
         Returns:
             List of Content objects
@@ -118,6 +121,11 @@ class ContentGenerator:
         Raises:
             ContentGenerationError: If count exceeds 1000
         """
+        if reuse_file:
+            contents = CsvImporter.import_content("contents.csv")
+            if contents:
+                self.logger.info(f"Reusing {len(contents)} items from contents.csv")
+                return contents
         if count > 1000:
             raise ContentGenerationError("Cannot generate more than 1000 items")
 
