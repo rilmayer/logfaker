@@ -96,9 +96,9 @@ class UserGenerator:
         """
         if reuse_file:
             users = CsvImporter.import_users("users.csv")
-            if users:
-                self.logger.info(f"Reusing {len(users)} profiles from users.csv")
-                return users
+            if users and len(users) >= count:
+                self.logger.info(f"Reusing {count} profiles from users.csv")
+                return users[:count]
         self.logger.info(f"Generating {count} user profiles")
         users = [self.generate_user(categories, i + 1) for i in range(count)]
         self.logger.info(f"Generated {len(users)} user profiles")
