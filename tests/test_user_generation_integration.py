@@ -121,3 +121,26 @@ def test_openai_user_generation_error_handling():
     generator = UserGenerator(config)
     with pytest.raises(Exception):  # Should raise an OpenAI API error
         generator.generate_user(categories)
+
+# OpenAI APIを使用してテストする場合は以下のコメントを外して実行
+# if __name__ == "__main__":
+#     import os
+#     import logging
+#     logging.basicConfig(level=logging.INFO)
+#     config = GeneratorConfig(
+#         api_key=os.getenv("OPENAI_API_KEY"),
+#         service_type="図書館の蔵書検索サービス",
+#         language="ja"
+#     )
+#     generator = UserGenerator(config)
+#     categories = [
+#         Category(name="テクノロジー", description="技術関連の書籍"),
+#         Category(name="文学", description="小説や詩集"),
+#         Category(name="ビジネス", description="ビジネスと経営の書籍")
+#     ]
+#     users = generator.generate_users(count=3, categories=categories, reuse_file=False)
+#     for user in users:
+#         print(user.user_id)
+#         print(user.brief_explanation)
+#         print(user.profession)
+#         print(user.preferences)

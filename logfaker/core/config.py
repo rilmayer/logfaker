@@ -11,6 +11,7 @@ class SearchEngineConfig(BaseModel):
     engine_type: str = Field(
         default="elasticsearch", description="Type of search engine"
     )
+    language: str = Field(default="en", description="Primary language for search")
     host: str = Field(default="localhost", description="Search engine host")
     port: int = Field(default=9200, description="Search engine port")
     index: str = Field(default="library_catalog", description="Search index name")
