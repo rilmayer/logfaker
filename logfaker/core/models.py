@@ -1,6 +1,6 @@
 """Data models for Logfaker."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
@@ -40,7 +40,7 @@ class SearchQuery(BaseModel):
     user_id: int = Field(description="ID of the user who made the query")
     query_content: str = Field(description="The actual search query text")
     category: str = Field(description="Category of the search query")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class SearchResult(BaseModel):

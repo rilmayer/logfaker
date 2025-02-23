@@ -24,3 +24,8 @@ ruff = "^0.2.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests that require external services (e.g. OpenAI API)",
+]
