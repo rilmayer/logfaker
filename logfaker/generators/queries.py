@@ -53,7 +53,6 @@ class QueryGenerator:
                 "role": "system",
                 "content": (
                     f"Generate a search query in {self.config.language}. "
-                    # f"Service where the user seaches: {self.config.service_type}."
                     f"User interests: {random.choice(user.preferences)}. "
                     f"User background: {user.brief_explanation}"
                 )
@@ -93,7 +92,6 @@ class QueryGenerator:
         """Create a prompt for query generation based on user profile."""
         return (
             f"Generate a search query in {self.config.language}. "
-            f"Where the user seaches in: {self.config.service_type}."
             f"User interests: {random.choice(user.preferences)}. "
             f"User background: {user.brief_explanation}"
         )
