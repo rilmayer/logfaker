@@ -84,19 +84,51 @@ config = LogfakerConfig(
     )
 )
 
-# コンテンツ生成
+# コンテンツ生成とElasticsearchへのインデックス作成
 content_gen = ContentGenerator(config.generator)
 contents = content_gen.generate_contents(count=50)  # 生成されたカテゴリに基づいて50アイテムを生成
+
+# Elasticsearchへのインデックス作成
+es = ElasticsearchEngine(config.search_engine)
+for content in contents:
+    es.index_content(content.content_id, content.dict())
 
 # カテゴリ一覧を取得してユーザー生成に利用
 categories = content_gen._generate_categories()
 user_gen = UserGenerator(config.generator)
 users = user_gen.generate_users(count=10, categories=categories)  # カテゴリに基づいて10人のユーザーを生成
 
+# ユーザーの興味に基づいて検索クエリを生成
+query_gen = QueryGenerator(config.generator)
+queries = []
+search_logs = []
+
+for user in users:
+    # ユーザーごとに3つの検索クエリを生成
+    user_queries = query_gen.generate_queries(user, count=3)
+    queries.extend(user_queries)
+    
+    # 各クエリで検索を実行してログを生成
+    for query in user_queries:
+        results = es.search(query.query_content, max_results=5)
+        
+        # 検索ログの生成（クリック数とCTRはシミュレーション）
+        search_log = SearchLog(
+            query_id=query.query_id,
+            user_id=user.user_id,
+            search_query=query.query_content,
+            search_results=results,
+            clicks=2,  # シミュレートされたクリック数
+            ctr=0.4    # シミュレートされたCTR
+        )
+        search_logs.append(search_log)
+
 # CSVファイルへの出力
 exporter = CsvExporter()
-exporter.export_content(contents, "contents.csv")  # コンテンツをCSVに出力
-exporter.export_users(users, "users.csv")         # ユーザープロファイルをCSVに出力
+exporter.export_content(contents, "contents.csv")     # コンテンツをCSVに出力
+exporter.export_users(users, "users.csv")            # ユーザープロファイルをCSVに出力
+exporter.export_queries(queries, "queries.csv")      # 検索クエリをCSVに出力
+exporter.export_search_logs(search_logs, "logs.csv") # 検索ログをCSVに出力
 
 # 出力されるCSVの例
 
@@ -121,19 +153,29 @@ exporter.export_users(users, "users.csv")         # ユーザープロファイ�
    - ログレベルをINFOに設定
    - AIモデルをgpt4o-miniに指定
 
-2. **コンテンツ生成**:
+2. **コンテンツ生成とインデックス作成**:
    - サービスタイプに基づいて約100個のカテゴリを生成
    - 各カテゴリに対して最大10個のコンテンツを生成
    - 生成過程はログに詳細に記録
+   - 生成されたコンテンツをElasticsearchにインデックス
 
 3. **ユーザー生成**:
    - 生成されたカテゴリを利用してユーザープロファイルを作成
    - 各ユーザーは少なくとも1つのカテゴリに興味を持つ
    - ユーザーの興味は実際のカテゴリから選択
 
-4. **データ出力**:
-   - 生成されたコンテンツとユーザープロファイルをCSVファイルに出力
-   - CSVファイルは日本語を正しく処理
+4. **検索クエリ生成と実行**:
+   - ユーザーの興味に基づいて検索クエリを生成
+   - 各ユーザーにつき3つの検索クエリを生成
+   - 生成されたクエリでElasticsearch検索を実行
+   - 検索結果からクリック数とCTRをシミュレート
+
+5. **データ出力**:
+   - 生成されたコンテンツをCSVに出力
+   - ユーザープロファイルをCSVに出力
+   - 検索クエリをCSVに出力
+   - 検索ログ（結果、クリック数、CTR）をCSVに出力
+   - すべてのCSVファイルは日本語を正しく処理
 
 ## Output Formats
 
