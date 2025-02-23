@@ -112,10 +112,13 @@ class QueryGenerator:
         
         # Make simulation deterministic per user
         import random
-        random.seed(user.user_id)
+        # Use combination of user ID and preferences to create more variation
+        seed_str = f"{user.user_id}_{','.join(user.preferences)}"
+        random.seed(hash(seed_str))
         
         # Simulate clicks (0-5, not exceeding number of results)
-        clicks = random.randint(0, min(5, len(results)))
+        max_clicks = min(5, len(results))
+        clicks = random.randint(1, max_clicks) if max_clicks > 0 else 0
         
         # Calculate CTR (0.0-1.0)
         ctr = clicks / len(results) if results else 0.0
