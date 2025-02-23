@@ -49,13 +49,12 @@ class CsvExporter:
         """Export user profiles to CSV."""
         with open(output_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["User ID", "Age", "Gender", "Profession", "Preferences"])
+            writer.writerow(["User ID", "Brief Explanation", "Profession", "Preferences"])
             for user in users:
                 writer.writerow(
                     [
                         user.user_id,
-                        user.age,
-                        user.gender,
+                        user.brief_explanation,
                         user.profession,
                         ", ".join(user.preferences),
                     ]

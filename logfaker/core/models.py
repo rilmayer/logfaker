@@ -19,20 +19,11 @@ class UserProfile(BaseModel):
     """Model for virtual user profiles."""
 
     user_id: int = Field(description="Unique identifier for the user")
-    age: int = Field(description="Age of the user")
-    gender: str = Field(description="Gender of the user")
+    brief_explanation: str = Field(description="Brief description of the user's background and interests")
     profession: str = Field(description="Professional occupation of the user")
     preferences: List[str] = Field(
         description="List of user's interests and preferences"
     )
-
-    def to_json_str(self) -> str:
-        """Convert user attributes to JSON string for CSV output."""
-        return {
-            "age": self.age,
-            "gender": self.gender,
-            "profession": self.profession,
-        }.__str__()
 
 
 class SearchQuery(BaseModel):
