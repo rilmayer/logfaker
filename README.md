@@ -112,14 +112,12 @@ for user in users:
     for query in user_queries:
         results = es.search(query.query_content, max_results=5)
         
-        # 検索ログの生成（クリック数とCTRはシミュレーション）
+        # 検索ログの生成
         search_log = SearchLog(
             query_id=query.query_id,
             user_id=user.user_id,
             search_query=query.query_content,
-            search_results=results,
-            clicks=2,  # シミュレートされたクリック数
-            ctr=0.4    # シミュレートされたCTR
+            search_results=results
         )
         search_logs.append(search_log)
 
@@ -168,13 +166,12 @@ exporter.export_search_logs(search_logs, "logs.csv") # 検索ログをCSVに出�
    - ユーザーの興味に基づいて検索クエリを生成
    - 各ユーザーにつき3つの検索クエリを生成
    - 生成されたクエリでElasticsearch検索を実行
-   - 検索結果からクリック数とCTRをシミュレート
 
 5. **データ出力**:
    - 生成されたコンテンツをCSVに出力
    - ユーザープロファイルをCSVに出力
    - 検索クエリをCSVに出力
-   - 検索ログ（結果、クリック数、CTR）をCSVに出力
+   - 検索ログ（クエリと結果）をCSVに出力
    - すべてのCSVファイルは日本語を正しく処理
 
 ## Output Formats
@@ -195,6 +192,6 @@ Query ID,Query Content,Category
 1,"機械学習","テクノロジー"
 
 # Search Log Format (検索ログ形式)
-Query ID,User ID,Search Query,Search Results (JSON),Clicks,CTR
-1,1001,"人工知能","[{\"title\": \"人工知能入門\", \"url\": \"https://library.example.com/book/1\"}]",3,0.6
+Query ID,User ID,Search Query,Search Results (JSON)
+1,1001,"人工知能","[{\"title\": \"人工知能入門\", \"url\": \"https://library.example.com/book/1\"}]"
 ```

@@ -59,5 +59,3 @@ class SearchLog(BaseModel):
     user_id: int = Field(description="ID of the user who made the query")
     search_query: str = Field(description="The search query text")
     search_results: List[SearchResult] = Field(description="List of search results")
-    clicks: Optional[int] = Field(None, description="Number of result clicks")
-    ctr: Optional[float] = Field(None, description="Click-through rate")

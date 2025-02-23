@@ -67,24 +67,16 @@ class CsvExporter:
         """Export search logs to CSV."""
         with open(output_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "Query ID",
-                    "User ID",
-                    "Search Query",
-                    "Search Results (JSON)",
-                    "Clicks",
-                    "CTR",
-                ]
-            )
+            writer.writerow([
+                "Query ID",
+                "User ID",
+                "Search Query",
+                "Search Results (JSON)"
+            ])
             for log in logs:
-                writer.writerow(
-                    [
-                        log.query_id,
-                        log.user_id,
-                        log.search_query,
-                        json.dumps([result.dict() for result in log.search_results]),
-                        log.clicks,
-                        log.ctr,
-                    ]
-                )
+                writer.writerow([
+                    log.query_id,
+                    log.user_id,
+                    log.search_query,
+                    json.dumps([result.dict() for result in log.search_results])
+                ])

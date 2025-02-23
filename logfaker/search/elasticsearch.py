@@ -75,12 +75,24 @@ class ElasticsearchEngine(SearchEngine):
     def index_content(self, content_id: int, data: dict) -> bool:
         """Index new content in Elasticsearch."""
         try:
+            # Delete existing index before indexing
+            self.delete_index()
             response = self.client.index(
                 index=self.config.index, id=str(content_id), document=data
             )
             return response["result"] in ["created", "updated"]
         except Exception as e:
             raise SearchEngineError(f"Indexing failed: {str(e)}")
+
+    def delete_index(self) -> bool:
+        """Delete the current index if it exists."""
+        try:
+            if self.client.indices.exists(index=self.config.index):
+                response = self.client.indices.delete(index=self.config.index)
+                return response["acknowledged"]
+            return True
+        except Exception as e:
+            raise SearchEngineError(f"Failed to delete index: {str(e)}")
 
     def is_healthy(self) -> bool:
         """Check Elasticsearch cluster health."""

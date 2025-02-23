@@ -2,12 +2,12 @@
 
 import json
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from openai import OpenAI
 
 from logfaker.core.config import GeneratorConfig
-from logfaker.core.models import SearchQuery, SearchResult, UserProfile
+from logfaker.core.models import SearchQuery, UserProfile
 
 
 class QueryGenerator:
@@ -94,51 +94,3 @@ class QueryGenerator:
             f"User interests: {', '.join(user.preferences)}. "
             f"User background: {user.brief_explanation}"
         )
-
-    def simulate_engagement(self, user: UserProfile, results: List[SearchResult]) -> Tuple[int, float]:
-        """
-        Simulate user engagement with search results.
-
-        Args:
-            user: UserProfile to base simulation on
-            results: List of search results to simulate engagement with
-
-        Returns:
-            Tuple of (clicks, ctr) where:
-            - clicks is the number of results clicked (0-5)
-            - ctr is the click-through rate (0.0-1.0)
-        """
-        self.logger.info(f"Simulating engagement for user {user.user_id} with {len(results)} results")
-        
-        # Make simulation deterministic per user
-        import random
-        # Use all user attributes for more variation
-        seed_str = f"{user.user_id}_{user.profession}_{','.join(user.preferences)}_{user.brief_explanation}"
-        random.seed(hash(seed_str))
-        
-        # Map user attributes to engagement patterns
-        # Use a combination of profession and preferences to determine engagement level
-        engagement_level = len(user.preferences)  # More interests = more engaged
-        if "エンジニア" in user.profession:
-            engagement_level += 2  # Engineers tend to click more
-        elif "学生" in user.profession:
-            engagement_level += 1  # Students click moderately
-        
-        # Use deterministic random seed for slight variations
-        random.seed(hash(seed_str))
-        
-        # Calculate clicks based on engagement level and results
-        max_clicks = min(5, len(results))
-        if max_clicks > 0:
-            # Scale engagement to clicks (1-5)
-            base_clicks = 1 + (engagement_level % max_clicks)
-            # Add small random variation
-            clicks = max(1, min(max_clicks, base_clicks + random.randint(-1, 1)))
-        else:
-            clicks = 0
-        
-        # Calculate CTR (0.0-1.0)
-        ctr = clicks / len(results) if results else 0.0
-        
-        self.logger.info(f"Simulated engagement: {clicks} clicks, {ctr:.2f} CTR")
-        return clicks, ctr
