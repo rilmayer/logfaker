@@ -1,6 +1,6 @@
 """Elasticsearch implementation of search engine interface."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from elasticsearch import Elasticsearch
 
@@ -51,9 +51,7 @@ class ElasticsearchEngine(SearchEngine):
                 ]
 
             # Execute search
-            # Ignore type checking for Elasticsearch response object
-            # ruff: noqa: B018
-            response = self.client.search(index=self.config.index, body=search_body)
+            response: Dict[str, Any] = self.client.search(index=self.config.index, body=search_body)  # type: ignore
             hits = response.get("hits", {}).get("hits", [])
 
             # Convert results
