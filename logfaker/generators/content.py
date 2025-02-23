@@ -119,18 +119,26 @@ class ContentGenerator:
             raise ContentGenerationError("Cannot generate more than 1000 items")
 
         categories = self._generate_categories()
-        items_per_category = min(10, count // len(categories))
+        items_per_category = min(10, (count + len(categories) - 1) // len(categories))
+        remaining = count
         
         contents = []
-        for category in categories:
-            for i in range(items_per_category):
+        category_idx = 0
+        while remaining > 0 and category_idx < len(categories):
+            category = categories[category_idx]
+            items_to_generate = min(items_per_category, remaining)
+            
+            for i in range(items_to_generate):
                 content = self._generate_content_for_category(
                     category=category,
                     content_id=len(contents) + 1
                 )
                 contents.append(content)
+                remaining -= 1
                 
-                if len(contents) >= count:
+                if remaining <= 0:
                     return contents
+            
+            category_idx += 1
                     
         return contents
