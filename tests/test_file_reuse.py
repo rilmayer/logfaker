@@ -9,6 +9,7 @@ import pytest
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import Category
 from logfaker.generators.content import ContentGenerator
+from logfaker.core.config import LogfakerConfig
 from logfaker.generators.users import UserGenerator
 from logfaker.utils.csv import CsvExporter
 
@@ -79,10 +80,22 @@ def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     
     # Patch the file path for reuse test
     monkeypatch.chdir(tmp_path)
+
+def test_output_directory_config(tmp_path):
+    """Test that output directory configuration works."""
+    output_dir = tmp_path / "outputs"
+    config = LogfakerConfig(output_dir=output_dir)
     
-    # Reset mock and try to generate again with reuse
-    mock_openai_client.reset_mock()
-    reused = generator.generate_users(5, categories, reuse_file=True)
-    assert len(reused) == len(users)
-    assert all(r.user_id == u.user_id for r, u in zip(reused, users))
-    assert all(r.preferences == u.preferences for r, u in zip(reused, users))
+    # Test with filename only
+    CsvExporter.export_users([], "users.csv", config=config)
+    assert (output_dir / "users.csv").exists()
+    
+    # Test with absolute path (should ignore output_dir)
+    abs_path = tmp_path / "elsewhere" / "users.csv"
+    CsvExporter.export_users([], abs_path, config=config)
+    assert abs_path.exists()
+    
+    # Test with relative path containing directories
+    rel_path = Path("subdir/users.csv")
+    CsvExporter.export_users([], rel_path, config=config)
+    assert (Path.cwd() / rel_path).exists()

@@ -1,5 +1,6 @@
 """Configuration settings for Logfaker."""
 
+from pathlib import Path
 from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
@@ -60,4 +61,8 @@ class LogfakerConfig(BaseModel):
     )
     catalog_type: str = Field(
         default="library", description="Type of catalog system (library, retail, etc.)"
+    )
+    output_dir: Optional[Path] = Field(
+        default=None,
+        description="Directory for all output files. If None, uses current directory"
     )

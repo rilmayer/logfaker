@@ -75,6 +75,23 @@ config = LogfakerConfig(
    es.setup_index(force=True)  # force=True will delete existing index
    ```
 
+### Output Directory Configuration
+
+The package supports configuring a single directory for all output files:
+
+```python
+config = LogfakerConfig(
+    output_dir="path/to/output/directory"  # All CSV files will be saved here
+)
+```
+
+When output_dir is set, any filename-only paths will be placed in this directory:
+- contents.csv -> path/to/output/directory/contents.csv
+- users.csv -> path/to/output/directory/users.csv
+etc.
+
+Absolute paths or paths with directories are used as-is.
+
 ### CSV File Reuse
 
 The package can reuse previously generated content and user profiles from CSV files:
