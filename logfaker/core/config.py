@@ -27,6 +27,10 @@ class GeneratorConfig(BaseModel):
         default=10, description="Maximum number of results per query"
     )
     language: str = Field(default="en", description="Primary language for generation")
+    service_type: str = Field(
+        default="Book search service",
+        description="Type of search service (e.g., library catalog)"
+    )
 
 
 class LogfakerConfig(BaseModel):
@@ -44,7 +48,11 @@ class LogfakerConfig(BaseModel):
     )
     generator: GeneratorConfig = Field(
         default_factory=lambda: GeneratorConfig(
-            ai_model="gpt-4", api_key=None, max_results=10, language="en"
+            ai_model="gpt-4",
+            api_key=None,
+            max_results=10,
+            language="en",
+            service_type="Book search service"
         )
     )
     catalog_type: str = Field(

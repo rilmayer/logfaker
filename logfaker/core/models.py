@@ -6,6 +6,13 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
+class Category(BaseModel):
+    """Model for content categories."""
+
+    name: str = Field(description="Category name")
+    description: str = Field(description="Category description")
+
+
 class Content(BaseModel):
     """Model for content in library catalog."""
 
