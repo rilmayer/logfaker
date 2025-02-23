@@ -106,3 +106,12 @@ def test_output_directory_config(tmp_path):
     rel_path = Path("subdir/users.csv")
     CsvExporter.export_users([], rel_path, config=config)
     assert (Path.cwd() / rel_path).exists()
+    
+    # Clean up test directories
+    import shutil
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    if abs_path.parent.exists():
+        shutil.rmtree(abs_path.parent)
+    if rel_path.parent.exists():
+        shutil.rmtree(rel_path.parent)
