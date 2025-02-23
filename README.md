@@ -30,11 +30,22 @@ config = LogfakerConfig(
 ### Elasticsearch Setup
 
 1. Install and Start Elasticsearch:
+
+   Ubuntu/Debian:
    ```bash
-   # Example for Ubuntu/Debian
    sudo apt update
    sudo apt install elasticsearch
    sudo systemctl start elasticsearch
+   ```
+
+   MacOS:
+   ```bash
+   # Install using Homebrew
+   brew tap elastic/tap
+   brew install elastic/tap/elasticsearch-full
+   
+   # Start Elasticsearch
+   brew services start elastic/tap/elasticsearch-full
    ```
 
 2. Configure Elasticsearch Connection:
@@ -61,21 +72,39 @@ config = LogfakerConfig(
     search_engine=SearchEngineConfig(host="localhost", port=9200)
 )
 
-# Generate and index content
+# コンテンツの生成とインデックス作成
 from logfaker.generators.content import ContentGenerator
+from logfaker.generators.users import UserGenerator
+from logfaker.generators.queries import QueryGenerator
 from logfaker.search.elasticsearch import ElasticsearchEngine
+from logfaker.utils.csv import CsvExporter
 
-# Create content generator
+# コンテンツジェネレーターの作成
 content_gen = ContentGenerator(config.generator)
 contents = content_gen.generate_contents(count=5)
 
-# Index content in Elasticsearch
+# Elasticsearchへのインデックス作成
 es = ElasticsearchEngine(config.search_engine)
 for content in contents:
     es.index_content(content.content_id, content.dict())
 
-# Search indexed content
-results = es.search("technology", max_results=5)
+# 検索の実行
+results = es.search("人工知能", max_results=5)
+
+# 検索ログの生成と出力
+from logfaker.core.models import SearchLog
+search_log = SearchLog(
+    query_id=1,
+    user_id=1001,
+    search_query="人工知能",
+    search_results=results,
+    clicks=3,
+    ctr=0.6
+)
+
+# CSVファイルへの出力
+exporter = CsvExporter()
+exporter.export_search_logs([search_log], "search_logs.csv")
 ```
 
 ## Output Formats
@@ -85,17 +114,17 @@ The package generates data in CSV format:
 ```csv
 # Content Format
 Content ID,Title,Description,Category
-1,"Introduction to AI","A comprehensive guide...","Technology"
+1,"人工知能入門","AIの基礎から応用まで網羅的に解説するガイド","テクノロジー"
 
 # User Profile Format
 User ID,Brief Explanation,Profession,Preferences
-1001,"A curious student with a passion for emerging technologies","student","technology, science fiction"
+1001,"最新のテクノロジーと科学に興味を持つ大学院生","学生","人工知能, データサイエンス"
 
 # Search Query Format
 Query ID,Query Content,Category
-1,"technology","General"
+1,"機械学習","テクノロジー"
 
 # Search Log Format
 Query ID,User ID,Search Query,Search Results (JSON),Clicks,CTR
-1,1001,"technology","[{\"title\": \"AI Guide\"}]",3,0.5
+1,1001,"人工知能","[{\"title\": \"人工知能入門\", \"url\": \"https://library.example.com/book/1\"}]",3,0.6
 ```
