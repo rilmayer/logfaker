@@ -1,4 +1,5 @@
 """Query generation based on user profiles and content."""
+
 from typing import List, Optional
 
 from openai import OpenAI
@@ -31,24 +32,20 @@ class QueryGenerator:
             model=self.config.ai_model,
             messages=[
                 {"role": "system", "content": "You are a library search assistant."},
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "user", "content": prompt},
+            ],
         )
-        
+
         # Parse response and create query
         # This is a placeholder implementation
         return SearchQuery(
             query_id=1,  # Will be replaced with actual ID generation
             user_id=user.user_id,
             query_content="Latest books on AI",
-            category="Technology"
+            category="Technology",
         )
 
-    def generate_queries(
-        self,
-        user: UserProfile,
-        count: int
-    ) -> List[SearchQuery]:
+    def generate_queries(self, user: UserProfile, count: int) -> List[SearchQuery]:
         """
         Generate multiple search queries for a user.
 

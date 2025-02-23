@@ -1,4 +1,5 @@
 """Virtual user generation using AI."""
+
 from typing import List, Optional
 
 from openai import OpenAI
@@ -28,10 +29,10 @@ class UserGenerator:
             model=self.config.ai_model,
             messages=[
                 {"role": "system", "content": "You are a user profile generator."},
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "user", "content": prompt},
+            ],
         )
-        
+
         # Parse the response and create a UserProfile object
         # This is a placeholder implementation
         return UserProfile(
@@ -39,7 +40,7 @@ class UserGenerator:
             age=25,
             gender="female",
             profession="student",
-            preferences=["technology", "science fiction"]
+            preferences=["technology", "science fiction"],
         )
 
     def generate_users(self, count: int) -> List[UserProfile]:
@@ -56,5 +57,7 @@ class UserGenerator:
 
     def _create_user_prompt(self) -> str:
         """Create a prompt for user generation."""
-        return ("Generate a realistic user profile with age, gender, profession, "
-                "and reading preferences for a library catalog system.")
+        return (
+            "Generate a realistic user profile with age, gender, profession, "
+            "and reading preferences for a library catalog system."
+        )

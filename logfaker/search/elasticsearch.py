@@ -1,4 +1,5 @@
 """Elasticsearch implementation of search engine interface."""
+
 from typing import List, Optional
 
 from elasticsearch import Elasticsearch
@@ -15,16 +16,15 @@ class ElasticsearchEngine(SearchEngine):
     def __init__(self, config: SearchEngineConfig):
         """Initialize Elasticsearch connection."""
         self.config = config
+        auth = None
+        if config.username and config.password:
+            auth = (config.username, config.password)
         self.client = Elasticsearch(
-            f"http://{config.host}:{config.port}",
-            basic_auth=(config.username, config.password) if config.username else None
+            f"http://{config.host}:{config.port}", basic_auth=auth
         )
 
     def search(
-        self,
-        query: str,
-        max_results: int = 10,
-        category: Optional[str] = None
+        self, query: str, max_results: int = 10, category: Optional[str] = None
     ) -> List[SearchResult]:
         """Execute search query against Elasticsearch."""
         try:
@@ -33,11 +33,16 @@ class ElasticsearchEngine(SearchEngine):
                 "query": {
                     "bool": {
                         "must": [
-                            {"match": {"_all": query}}
+                            {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": ["title", "description", "abstract"],
+                                }
+                            }
                         ]
                     }
                 },
-                "size": max_results
+                "size": max_results,
             }
 
             if category:
@@ -46,20 +51,20 @@ class ElasticsearchEngine(SearchEngine):
                 ]
 
             # Execute search
-            response = self.client.search(
-                index=self.config.index,
-                body=search_body
-            )
+            # Ignore type checking for Elasticsearch response object
+            # ruff: noqa: B018
+            response = self.client.search(index=self.config.index, body=search_body)
+            hits = response.get("hits", {}).get("hits", [])
 
             # Convert results
             return [
                 SearchResult(
-                    content_id=hit["_id"],
-                    title=hit["_source"]["title"],
-                    url=f"https://library.example.com/book/{hit['_id']}",
-                    relevance_score=hit["_score"]
+                    content_id=int(hit.get("_id", 0)),
+                    title=hit.get("_source", {}).get("title", ""),
+                    url=f"https://library.example.com/book/{hit.get('_id', 0)}",
+                    relevance_score=float(hit.get("_score", 0.0)),
                 )
-                for hit in response["hits"]["hits"]
+                for hit in hits
             ]
 
         except Exception as e:
@@ -69,9 +74,7 @@ class ElasticsearchEngine(SearchEngine):
         """Index new content in Elasticsearch."""
         try:
             response = self.client.index(
-                index=self.config.index,
-                id=str(content_id),
-                document=data
+                index=self.config.index, id=str(content_id), document=data
             )
             return response["result"] in ["created", "updated"]
         except Exception as e:

@@ -1,4 +1,5 @@
 """Content generation using AI."""
+
 from typing import List, Optional
 
 from openai import OpenAI
@@ -31,10 +32,10 @@ class ContentGenerator:
             model=self.config.ai_model,
             messages=[
                 {"role": "system", "content": "You are a library catalog assistant."},
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "user", "content": prompt},
+            ],
         )
-        
+
         # Parse the response and create a BookContent object
         # This is a placeholder implementation
         return BookContent(
@@ -42,12 +43,15 @@ class ContentGenerator:
             title="Sample Book",
             description="Sample Description",
             category=category or "General",
+            author=None,
+            publisher=None,
+            year=None,
+            genre=None,
+            abstract=None,
         )
 
     def generate_books(
-        self,
-        count: int,
-        categories: Optional[List[str]] = None
+        self, count: int, categories: Optional[List[str]] = None
     ) -> List[BookContent]:
         """
         Generate multiple book entries.
@@ -59,8 +63,12 @@ class ContentGenerator:
         Returns:
             List of BookContent objects
         """
-        return [self.generate_book(category=categories[i % len(categories)] if categories else None)
-                for i in range(count)]
+        return [
+            self.generate_book(
+                category=categories[i % len(categories)] if categories else None
+            )
+            for i in range(count)
+        ]
 
     def _create_book_prompt(self, category: Optional[str]) -> str:
         """Create a prompt for book generation."""

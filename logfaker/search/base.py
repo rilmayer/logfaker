@@ -1,4 +1,5 @@
 """Base search engine interface."""
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
@@ -10,10 +11,7 @@ class SearchEngine(ABC):
 
     @abstractmethod
     def search(
-        self,
-        query: str,
-        max_results: int = 10,
-        category: Optional[str] = None
+        self, query: str, max_results: int = 10, category: Optional[str] = None
     ) -> List[SearchResult]:
         """
         Execute a search query and return results.
