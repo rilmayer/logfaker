@@ -1,10 +1,23 @@
 """Tests for CSV file reuse functionality."""
 
 import json
+import shutil
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+
+@pytest.fixture(autouse=True)
+def cleanup_test_files(request, tmp_path):
+    """Clean up test files after each test."""
+    yield
+    # Clean up tmp_path and any subdirectories
+    if tmp_path.exists():
+        shutil.rmtree(tmp_path)
+    # Clean up any relative paths in current directory
+    subdir = Path("subdir")
+    if subdir.exists():
+        shutil.rmtree(subdir)
 
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import Category
@@ -107,11 +120,4 @@ def test_output_directory_config(tmp_path):
     CsvExporter.export_users([], rel_path, config=config)
     assert (Path.cwd() / rel_path).exists()
     
-    # Clean up test directories
-    import shutil
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    if abs_path.parent.exists():
-        shutil.rmtree(abs_path.parent)
-    if rel_path.parent.exists():
-        shutil.rmtree(rel_path.parent)
+    # Test assertions are done, cleanup will be handled by fixture
