@@ -42,10 +42,9 @@ def test_openai_user_generation():
 def test_openai_multiple_user_generation():
     """Test generating multiple users with real OpenAI API."""
     config = GeneratorConfig(
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key="dummy-key",
         service_type="図書館の蔵書検索サービス",
-        language="ja",
-        ai_model="gpt-3.5-turbo"
+        language="ja"
     )
     
     categories = [
@@ -64,15 +63,12 @@ def test_openai_multiple_user_generation():
             f"All preferences for user {i} should be from provided categories"
 
 
-@pytest.mark.integration
-@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OpenAI API key not set")
-def test_openai_user_generation_file_reuse(tmp_path):
-    """Test file reuse functionality with real OpenAI API."""
+def test_user_generation_file_reuse(tmp_path):
+    """Test file reuse functionality and preference validation."""
     config = GeneratorConfig(
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key="dummy-key",
         service_type="図書館の蔵書検索サービス",
-        language="ja",
-        ai_model="gpt-3.5-turbo"
+        language="ja"
     )
     
     categories = [
@@ -82,13 +78,26 @@ def test_openai_user_generation_file_reuse(tmp_path):
     
     generator = UserGenerator(config)
     
-    # Generate initial users
-    original_users = generator.generate_users(count=2, categories=categories, reuse_file=False)
+    # Create test users directly
+    original_users = [
+        UserProfile(
+            user_id=1,
+            brief_explanation="技術書が好きなエンジニア",
+            profession="エンジニア",
+            preferences=["テクノロジー"]
+        ),
+        UserProfile(
+            user_id=2,
+            brief_explanation="小説が好きな学生",
+            profession="学生",
+            preferences=["文学"]
+        )
+    ]
     csv_path = tmp_path / "users.csv"
     CsvExporter.export_users(original_users, csv_path)
     
-    # Try to generate again with reuse
-    reused_users = generator.generate_users(count=2, categories=categories, reuse_file=True)
+    # Try to generate again with reuse using absolute path
+    reused_users = generator.generate_users(count=2, categories=categories, reuse_file=True, csv_path=csv_path)
     assert len(reused_users) == len(original_users), "Should reuse same number of users"
     for orig, reused in zip(original_users, reused_users):
         assert orig.user_id == reused.user_id, "User IDs should match"

@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from openai import OpenAI
 
@@ -102,7 +102,8 @@ class UserGenerator:
         self.logger.debug(f"User interests: {', '.join(user.preferences)}")
         return user
 
-    def generate_users(self, count: int, categories: List[Category], reuse_file: bool = True) -> List[UserProfile]:
+    def generate_users(self, count: int, categories: List[Category], reuse_file: bool = True,
+                      csv_path: Optional[Union[str, Path]] = None) -> List[UserProfile]:
         """
         Generate multiple user profiles.
 
@@ -110,14 +111,17 @@ class UserGenerator:
             count: Number of users to generate
             categories: List of available categories to choose interests from
             reuse_file: If True, try to load from users.csv first
+            csv_path: Optional path to users.csv file. If not provided, uses "users.csv" in current directory
 
         Returns:
             List of UserProfile objects
         """
         if reuse_file:
-            users = CsvImporter.import_users("users.csv", categories)
+            file_path = Path(csv_path if csv_path else "users.csv").resolve()
+            self.logger.debug(f"Looking for users file at: {file_path}")
+            users = CsvImporter.import_users(file_path, categories)
             if users and len(users) >= count:
-                self.logger.info(f"Reusing {count} profiles from users.csv")
+                self.logger.info(f"Reusing {count} profiles from {file_path}")
                 return users[:count]
         self.logger.info(f"Generating {count} user profiles")
         users = [self.generate_user(categories, i + 1) for i in range(count)]
