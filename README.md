@@ -200,6 +200,45 @@ exporter.export_search_logs(search_logs, "logs.csv") # 検索ログをCSVに出�
    - 検索ログ（クエリと結果）をCSVに出力
    - すべてのCSVファイルは日本語を正しく処理
 
+## Testing
+
+### Running Tests
+
+To run the tests, first install the package in development mode:
+
+```bash
+# Install using Poetry with development dependencies
+poetry install
+
+# Run all tests
+poetry run pytest
+
+# Run only unit tests (excluding integration tests)
+poetry run pytest -v -m "not integration"
+
+# Run integration tests (requires OPENAI_API_KEY)
+export OPENAI_API_KEY="your-openai-api-key"
+poetry run pytest -v -m integration
+```
+
+Note: Integration tests require a valid OpenAI API key. Tests marked with `@pytest.mark.integration` will be skipped if `OPENAI_API_KEY` is not set in the environment.
+
+### Test Categories
+
+The test suite includes:
+
+1. **Unit Tests**:
+   - Content generation tests
+   - Query generation tests with mocked OpenAI API
+   - User profile generation tests
+   - File reuse functionality tests
+
+2. **Integration Tests**:
+   - Real OpenAI API integration tests for query generation
+   - Real OpenAI API integration tests for user generation
+   - File reuse functionality with real data
+   - Error handling tests
+
 ## Output Formats
 
 The package generates data in CSV format (出力形式):
