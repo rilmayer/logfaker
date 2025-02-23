@@ -37,8 +37,7 @@ class UserGenerator:
         # This is a placeholder implementation
         return UserProfile(
             user_id=1,  # Will be replaced with actual ID generation
-            age=25,
-            gender="female",
+            brief_explanation="A curious student with a passion for emerging technologies and science fiction literature",
             profession="student",
             preferences=["technology", "science fiction"],
         )
@@ -58,6 +57,6 @@ class UserGenerator:
     def _create_user_prompt(self) -> str:
         """Create a prompt for user generation."""
         return (
-            "Generate a realistic user profile with age, gender, profession, "
-            "and reading preferences for a library catalog system."
+            "Generate a brief explanation of a user's background and interests, "
+            "along with their profession and reading preferences for a library catalog system."
         )
