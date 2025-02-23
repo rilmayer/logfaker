@@ -21,7 +21,7 @@ class SearchEngineConfig(BaseModel):
 class GeneratorConfig(BaseModel):
     """Configuration for data generation."""
 
-    ai_model: str = Field(default="gpt4o-mini", description="AI model to use for generation")
+    ai_model: str = Field(default="gpt-4o-mini", description="AI model to use for generation")
     api_key: Optional[str] = Field(None, description="API key for AI service")
     max_results: int = Field(
         default=10, description="Maximum number of results per query"
@@ -49,7 +49,7 @@ class LogfakerConfig(BaseModel):
     )
     generator: GeneratorConfig = Field(
         default_factory=lambda: GeneratorConfig(
-            ai_model="gpt4o-mini",
+            ai_model="gpt-4o-mini",
             api_key=None,
             max_results=10,
             language="en",
