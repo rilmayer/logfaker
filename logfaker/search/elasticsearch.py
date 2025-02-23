@@ -28,6 +28,7 @@ class ElasticsearchEngine(SearchEngine):
     ) -> List[SearchResult]:
         """Execute search query against Elasticsearch."""
         try:
+            analyzer = "kuromoji_analyzer" if self.config.language == "ja" else "standard"
             # Build search query
             search_body = {
                 "query": {
@@ -37,6 +38,7 @@ class ElasticsearchEngine(SearchEngine):
                                 "multi_match": {
                                     "query": query,
                                     "fields": ["title", "description", "abstract"],
+                                    "analyzer": analyzer
                                 }
                             }
                         ]
@@ -63,7 +65,7 @@ class ElasticsearchEngine(SearchEngine):
                 SearchResult(
                     content_id=int(hit.get("_id", 0)),
                     title=hit.get("_source", {}).get("title", ""),
-                    url=f"https://library.example.com/book/{hit.get('_id', 0)}",
+                    url=f"https://example.com/content/{hit.get('_id', 0)}",
                     relevance_score=float(hit.get("_score", 0.0)),
                 )
                 for hit in hits
@@ -96,7 +98,49 @@ class ElasticsearchEngine(SearchEngine):
                 self.delete_index()
             
             if not self.client.indices.exists(index=self.config.index):
-                self.client.indices.create(index=self.config.index)
+                if self.config.language == "ja":
+                    index_body = {
+                        "settings": {
+                            "analysis": {
+                                "tokenizer": {
+                                    "kuromoji_search_tokenizer": {
+                                        "type": "kuromoji_tokenizer",
+                                        "mode": "search"
+                                    }
+                                },
+                                "analyzer": {
+                                    "kuromoji_analyzer": {
+                                        "type": "custom",
+                                        "tokenizer": "kuromoji_search_tokenizer",
+                                        "filter": ["kuromoji_baseform", "kuromoji_part_of_speech", "ja_stop"]
+                                    }
+                                }
+                            }
+                        },
+                        "mappings": {
+                            "properties": {
+                                "title": {
+                                    "type": "text",
+                                    "analyzer": "kuromoji_analyzer"
+                                },
+                                "description": {
+                                    "type": "text",
+                                    "analyzer": "kuromoji_analyzer"
+                                },
+                                "abstract": {
+                                    "type": "text",
+                                    "analyzer": "kuromoji_analyzer"
+                                },
+                                "category": {
+                                    "type": "keyword"
+                                }
+                            }
+                        }
+                    }
+                else:
+                    index_body = {}  # デフォルトの設定を使用
+
+                self.client.indices.create(index=self.config.index, body=index_body)
             return True
         except Exception as e:
             raise SearchEngineError(f"Index setup failed: {str(e)}")

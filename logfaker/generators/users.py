@@ -2,6 +2,7 @@
 
 import json
 import logging
+import random
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -56,8 +57,8 @@ class UserGenerator:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "brief_explanation": {"type": "string"},
-                    "profession": {"type": "string"},
+                    "brief_explanation": {"type": "string", "description": "Brief explanation of the user's interests and how they use the search service."},
+                    "profession": {"type": "string", "description": "User's profession"},
                     "preferences": {
                         "type": "array",
                         "items": {
@@ -78,10 +79,8 @@ class UserGenerator:
             messages=[{
                 "role": "system",
                 "content": (
-                    f"Generate a user profile for {self.config.service_type}. "
-                    f"Select interests from categories: {category_names}. "
-                    f"User must be interested in at least one category. "
-                    f"IMPORTANT: Only use exact category names from the provided list."
+                    f"Generate a brief third-person introduction of a user profile explaining how they use '{self.config.service_type}' in {self.config.language}."
+                    f"User is interested in {random.choice(category_names)}."
                 )
             }],
             functions=functions,

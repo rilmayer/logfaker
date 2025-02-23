@@ -16,7 +16,7 @@ class CsvExporter:
         queries: List[SearchQuery], output_path: Union[str, Path]
     ) -> None:
         """Export search queries to CSV."""
-        with open(output_path, "w", newline="") as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Query ID", "Query Content", "Category"])
             for query in queries:
@@ -28,7 +28,7 @@ class CsvExporter:
         output_path: Union[str, Path],
     ) -> None:
         """Export content to CSV."""
-        with open(output_path, "w", newline="") as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Content ID", "Title", "Description", "Category"])
             for content in contents:
@@ -47,7 +47,7 @@ class CsvExporter:
         output_path: Union[str, Path],
     ) -> None:
         """Export user profiles to CSV."""
-        with open(output_path, "w", newline="") as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["User ID", "Brief Explanation", "Profession", "Preferences"])
             for user in users:
@@ -56,7 +56,7 @@ class CsvExporter:
                         user.user_id,
                         user.brief_explanation,
                         user.profession,
-                        ", ".join(user.preferences),
+                        ",".join(user.preferences),
                     ]
                 )
 
@@ -65,7 +65,7 @@ class CsvExporter:
         logs: List[SearchLog], output_path: Union[str, Path]
     ) -> None:
         """Export search logs to CSV."""
-        with open(output_path, "w", newline="") as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow([
                 "Query ID",
@@ -78,5 +78,5 @@ class CsvExporter:
                     log.query_id,
                     log.user_id,
                     log.search_query,
-                    json.dumps([result.dict() for result in log.search_results])
+                    json.dumps([result.dict() for result in log.search_results], ensure_ascii=False)
                 ])

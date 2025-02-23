@@ -116,6 +116,12 @@ contents = content_gen.generate_contents(count=50)  # 生成されたカテゴ�
 
 # Elasticsearchへのインデックス作成
 es = ElasticsearchEngine(config.search_engine)
+
+# インデックスのセットアップ
+if not es.setup_index(force=True):
+    raise RuntimeError("Failed to set up Elasticsearch index")
+
+# コンテンツをElasticsearchにインデックス
 for content in contents:
     es.index_content(content.content_id, content.dict())
 
