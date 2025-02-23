@@ -21,7 +21,7 @@ class SearchEngineConfig(BaseModel):
 class GeneratorConfig(BaseModel):
     """Configuration for data generation."""
 
-    ai_model: str = Field(default="gpt-4", description="AI model to use for generation")
+    ai_model: str = Field(default="gpt4o-mini", description="AI model to use for generation")
     api_key: Optional[str] = Field(None, description="API key for AI service")
     max_results: int = Field(
         default=10, description="Maximum number of results per query"
@@ -31,6 +31,7 @@ class GeneratorConfig(BaseModel):
         default="Book search service",
         description="Type of search service (e.g., library catalog)"
     )
+    log_level: str = Field(default="INFO", description="Logging level for generators")
 
 
 class LogfakerConfig(BaseModel):
@@ -48,11 +49,12 @@ class LogfakerConfig(BaseModel):
     )
     generator: GeneratorConfig = Field(
         default_factory=lambda: GeneratorConfig(
-            ai_model="gpt-4",
+            ai_model="gpt4o-mini",
             api_key=None,
             max_results=10,
             language="en",
-            service_type="Book search service"
+            service_type="Book search service",
+            log_level="INFO"
         )
     )
     catalog_type: str = Field(

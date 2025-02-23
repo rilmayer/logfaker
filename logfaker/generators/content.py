@@ -1,6 +1,7 @@
 """Content generation using AI."""
 
 import json
+import logging
 from typing import List, Optional
 
 from openai import OpenAI
@@ -17,6 +18,8 @@ class ContentGenerator:
         """Initialize the content generator."""
         self.config = config
         self.client = OpenAI(api_key=config.api_key)
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(getattr(logging, config.log_level))
 
     def _generate_categories(self) -> List[Category]:
         """
@@ -118,16 +121,24 @@ class ContentGenerator:
         if count > 1000:
             raise ContentGenerationError("Cannot generate more than 1000 items")
 
+        self.logger.info(f"Starting content generation for {self.config.service_type}")
         categories = self._generate_categories()
+        self.logger.info(f"Generated {len(categories)} categories")
+        for cat in categories:
+            self.logger.debug(f"Category: {cat.name} - {cat.description}")
+
         items_per_category = min(10, (count + len(categories) - 1) // len(categories))
-        remaining = count
+        self.logger.info(f"Generating up to {items_per_category} items per category")
         
+        remaining = count
         contents = []
         category_idx = 0
+        
         while remaining > 0 and category_idx < len(categories):
             category = categories[category_idx]
             items_to_generate = min(items_per_category, remaining)
             
+            self.logger.info(f"Generating {items_to_generate} items for category '{category.name}'")
             for i in range(items_to_generate):
                 content = self._generate_content_for_category(
                     category=category,
@@ -137,8 +148,11 @@ class ContentGenerator:
                 remaining -= 1
                 
                 if remaining <= 0:
+                    self.logger.info("Content generation completed")
                     return contents
             
             category_idx += 1
-                    
+            self.logger.info(f"Progress: {len(contents)}/{count} items generated")
+        
+        self.logger.info("Content generation completed")
         return contents

@@ -23,7 +23,8 @@ config = LogfakerConfig(
         api_key="your-openai-api-key",    # Required: OpenAI API key
         service_type="図書館の蔵書検索サービス",  # Optional: Defaults to "Book search service"
         language="ja",                     # Optional: Defaults to "en"
-        ai_model="gpt-4"                  # Optional: Defaults to "gpt-4"
+        ai_model="gpt4o-mini",            # Optional: Defaults to gpt4o-mini
+        log_level="INFO"                  # Optional: Defaults to INFO
     )
 )
 ```
@@ -64,49 +65,75 @@ config = LogfakerConfig(
    )
    ```
 
-## Usage Example
+## Usage Example (使用例)
 
 ```python
-# Initialize configuration
-config = LogfakerConfig(
-    generator=GeneratorConfig(api_key="your-openai-api-key"),
-    search_engine=SearchEngineConfig(host="localhost", port=9200)
-)
-
-# コンテンツの生成とインデックス作成
+from logfaker.core.config import LogfakerConfig, GeneratorConfig
 from logfaker.generators.content import ContentGenerator
 from logfaker.generators.users import UserGenerator
-from logfaker.generators.queries import QueryGenerator
-from logfaker.search.elasticsearch import ElasticsearchEngine
 from logfaker.utils.csv import CsvExporter
 
-# コンテンツジェネレーターの作成
-content_gen = ContentGenerator(config.generator)
-contents = content_gen.generate_contents(count=50)  # 5カテゴリ x 10アイテム
-
-# Elasticsearchへのインデックス作成
-es = ElasticsearchEngine(config.search_engine)
-for content in contents:
-    es.index_content(content.content_id, content.dict())
-
-# 検索の実行
-results = es.search("人工知能", max_results=5)
-
-# 検索ログの生成と出力
-from logfaker.core.models import SearchLog
-search_log = SearchLog(
-    query_id=1,
-    user_id=1001,
-    search_query="人工知能",
-    search_results=results,
-    clicks=3,
-    ctr=0.6
+# 設定の初期化
+config = LogfakerConfig(
+    generator=GeneratorConfig(
+        api_key="your-openai-api-key",
+        service_type="図書館の蔵書検索サービス",  # サービスタイプの指定
+        language="ja",                     # 日本語コンテンツの生成
+        log_level="INFO",                  # ログレベルの設定
+        ai_model="gpt4o-mini"             # AIモデルの指定
+    )
 )
+
+# コンテンツ生成
+content_gen = ContentGenerator(config.generator)
+contents = content_gen.generate_contents(count=50)  # 生成されたカテゴリに基づいて50アイテムを生成
+
+# カテゴリ一覧を取得してユーザー生成に利用
+categories = content_gen._generate_categories()
+user_gen = UserGenerator(config.generator)
+users = user_gen.generate_users(count=10, categories=categories)  # カテゴリに基づいて10人のユーザーを生成
 
 # CSVファイルへの出力
 exporter = CsvExporter()
-exporter.export_search_logs([search_log], "search_logs.csv")
+exporter.export_content(contents, "contents.csv")  # コンテンツをCSVに出力
+exporter.export_users(users, "users.csv")         # ユーザープロファイルをCSVに出力
+
+# 出力されるCSVの例
+
+## contents.csv
+# Content ID,Title,Description,Category
+# 1,"人工知能入門","AIの基礎から応用まで網羅的に解説するガイド","テクノロジー"
+# 2,"データサイエンスの実践","ビッグデータ分析の手法と実装","データサイエンス"
+# ...
+
+## users.csv
+# User ID,Brief Explanation,Profession,Preferences
+# 1,"最新のテクノロジーと科学に興味を持つ大学院生","学生","テクノロジー, データサイエンス"
+# 2,"文学と歴史に造詣が深い図書館司書","司書","文学, 歴史"
+# ...
 ```
+
+このワークフローでは以下のような処理が行われます：
+
+1. **設定の初期化**:
+   - サービスタイプを「図書館の蔵書検索サービス」に設定
+   - 日本語でのコンテンツ生成を指定
+   - ログレベルをINFOに設定
+   - AIモデルをgpt4o-miniに指定
+
+2. **コンテンツ生成**:
+   - サービスタイプに基づいて約100個のカテゴリを生成
+   - 各カテゴリに対して最大10個のコンテンツを生成
+   - 生成過程はログに詳細に記録
+
+3. **ユーザー生成**:
+   - 生成されたカテゴリを利用してユーザープロファイルを作成
+   - 各ユーザーは少なくとも1つのカテゴリに興味を持つ
+   - ユーザーの興味は実際のカテゴリから選択
+
+4. **データ出力**:
+   - 生成されたコンテンツとユーザープロファイルをCSVファイルに出力
+   - CSVファイルは日本語を正しく処理
 
 ## Output Formats
 
