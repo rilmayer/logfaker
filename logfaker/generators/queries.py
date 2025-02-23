@@ -112,13 +112,30 @@ class QueryGenerator:
         
         # Make simulation deterministic per user
         import random
-        # Use combination of user ID and preferences to create more variation
-        seed_str = f"{user.user_id}_{','.join(user.preferences)}"
+        # Use all user attributes for more variation
+        seed_str = f"{user.user_id}_{user.profession}_{','.join(user.preferences)}_{user.brief_explanation}"
         random.seed(hash(seed_str))
         
-        # Simulate clicks (0-5, not exceeding number of results)
+        # Map user attributes to engagement patterns
+        # Use a combination of profession and preferences to determine engagement level
+        engagement_level = len(user.preferences)  # More interests = more engaged
+        if "エンジニア" in user.profession:
+            engagement_level += 2  # Engineers tend to click more
+        elif "学生" in user.profession:
+            engagement_level += 1  # Students click moderately
+        
+        # Use deterministic random seed for slight variations
+        random.seed(hash(seed_str))
+        
+        # Calculate clicks based on engagement level and results
         max_clicks = min(5, len(results))
-        clicks = random.randint(1, max_clicks) if max_clicks > 0 else 0
+        if max_clicks > 0:
+            # Scale engagement to clicks (1-5)
+            base_clicks = 1 + (engagement_level % max_clicks)
+            # Add small random variation
+            clicks = max(1, min(max_clicks, base_clicks + random.randint(-1, 1)))
+        else:
+            clicks = 0
         
         # Calculate CTR (0.0-1.0)
         ctr = clicks / len(results) if results else 0.0
