@@ -42,7 +42,7 @@ def test_content_file_reuse(mock_openai_client, tmp_path):
     assert all(r.content_id == c.content_id for r, c in zip(reused, contents))
 
 
-def test_user_file_reuse(mock_openai_client, tmp_path):
+def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     """Test that user generation reuses CSV files."""
     config = GeneratorConfig(
         api_key="test-key",
@@ -51,14 +51,19 @@ def test_user_file_reuse(mock_openai_client, tmp_path):
     )
     generator = UserGenerator(config)
     
-    # Configure mock response
-    mock_response = MagicMock()
-    mock_response.choices[0].message.function_call.arguments = json.dumps({
-        "brief_explanation": "技術書が好きなエンジニア",
-        "profession": "エンジニア",
-        "preferences": ["テクノロジー", "文学"]
-    })
-    mock_openai_client.chat.completions.create.return_value = mock_response
+    # Configure mock responses for multiple users
+    def create_mock_response(user_id):
+        mock_response = MagicMock()
+        mock_response.choices[0].message.function_call.arguments = json.dumps({
+            "brief_explanation": f"技術書が好きなエンジニア {user_id}",
+            "profession": "エンジニア",
+            "preferences": ["テクノロジー", "文学"]
+        })
+        return mock_response
+    
+    mock_openai_client.chat.completions.create.side_effect = [
+        create_mock_response(i) for i in range(1, 6)
+    ]
     generator.client = mock_openai_client
     
     # Create test categories
@@ -72,7 +77,11 @@ def test_user_file_reuse(mock_openai_client, tmp_path):
     csv_path = tmp_path / "users.csv"
     CsvExporter.export_users(users, csv_path)
     
-    # Try to generate again with reuse
+    # Patch the file path for reuse test
+    monkeypatch.chdir(tmp_path)
+    
+    # Reset mock and try to generate again with reuse
+    mock_openai_client.reset_mock()
     reused = generator.generate_users(5, categories, reuse_file=True)
     assert len(reused) == len(users)
     assert all(r.user_id == u.user_id for r, u in zip(reused, users))
