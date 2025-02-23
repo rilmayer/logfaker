@@ -93,7 +93,7 @@ class ContentGenerator:
             model=self.config.ai_model,
             messages=[{
                 "role": "system",
-                "content": f"Generate content for category '{category.name}' ({category.description}) in {self.config.service_type}. Use {self.config.language} language. Be care about the generated content is not overlapped with the actual content in the real world."
+                "content": f"Generate content for category '{category.name}' ({category.description}) in {self.config.service_type}. Use {self.config.language} language. Be careful that the generated content does not overlap with actual content in the real world."
             }],
             functions=functions,
             function_call={"name": "create_content"}
