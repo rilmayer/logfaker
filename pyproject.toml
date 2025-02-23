@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "logfaker"
+version = "0.1.0"
+description = "Generate realistic test data for search engines, focusing on library catalog search systems"
+authors = ["rilmayer"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "logfaker"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.0"
+openai = "^1.12.0"
+elasticsearch = "^8.12.0"
+pydantic = "^2.6.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+black = "^24.1.1"
+isort = "^5.13.2"
+mypy = "^1.8.0"
+ruff = "^0.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
