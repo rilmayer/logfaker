@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from openai import OpenAI
 
@@ -95,7 +95,7 @@ class QueryGenerator:
             f"User background: {user.brief_explanation}"
         )
 
-    def simulate_engagement(self, user: UserProfile, results: List[SearchResult]) -> tuple[int, float]:
+    def simulate_engagement(self, user: UserProfile, results: List[SearchResult]) -> Tuple[int, float]:
         """
         Simulate user engagement with search results.
 
