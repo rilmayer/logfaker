@@ -16,7 +16,7 @@ def test_openai_query_generation():
         language="ja",
         ai_model="gpt-3.5-turbo"  # Using a stable model for testing
     )
-    
+
     generator = QueryGenerator(config)
     user = UserProfile(
         user_id=1,
@@ -24,9 +24,9 @@ def test_openai_query_generation():
         profession="エンジニア",
         preferences=["プログラミング", "AI"]
     )
-    
+
     query = generator.generate_query(user)
-    
+
     # Verify query structure and content
     assert query.query_content, "Query content should not be empty"
     assert query.category, "Query category should not be empty"
@@ -44,7 +44,7 @@ def test_openai_query_generation_error_handling():
         service_type="図書館の蔵書検索サービス",
         language="ja"
     )
-    
+
     generator = QueryGenerator(config)
     user = UserProfile(
         user_id=1,
@@ -52,6 +52,6 @@ def test_openai_query_generation_error_handling():
         profession="エンジニア",
         preferences=["プログラミング", "AI"]
     )
-    
+
     with pytest.raises(Exception):  # Should raise an OpenAI API error
         generator.generate_query(user)

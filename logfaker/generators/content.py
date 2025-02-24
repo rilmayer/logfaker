@@ -5,6 +5,9 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Union
 
+from logfaker.utils.csv import CsvExporter
+from logfaker.utils.importer import CsvImporter
+
 from openai import OpenAI
 
 from logfaker.core.config import GeneratorConfig
@@ -22,10 +25,14 @@ class ContentGenerator:
         self.client = OpenAI(api_key=config.api_key)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(getattr(logging, config.log_level))
+        self._categories: Optional[List[Category]] = None
 
-    def _generate_categories(self) -> List[Category]:
+    def _generate_categories(self, existing_names: Optional[set[str]] = None) -> List[Category]:
         """
         Generate categories using function calling.
+
+        Args:
+            existing_names: Set of category names to avoid duplicates
 
         Returns:
             List of Category objects
@@ -51,19 +58,32 @@ class ContentGenerator:
                 "required": ["categories"]
             }
         }]
-        
+
         response = self.client.chat.completions.create(
             model=self.config.ai_model,
             messages=[{
                 "role": "system",
-                "content": f"Generate approximately 100 categories for {self.config.service_type} in {self.config.language}. Categories should be diverse and cover all potential content types."
+                "content": (
+                    f"Generate approximately 100 categories for {self.config.service_type} in {self.config.language}. "
+                    f"Categories should be diverse and cover all potential content types.\n\n"
+                    + (f"IMPORTANT: The following categories already exist. You MUST NOT generate any categories that are similar to these:\n"
+                       f"{', '.join(f'- {name}' for name in existing_names)}\n\n"
+                       f"Generate completely different categories that cover other areas not mentioned above."
+                       if existing_names else "")
+                )
             }],
             functions=functions,
             function_call={"name": "create_categories"}
         )
-        
+
         result = json.loads(response.choices[0].message.function_call.arguments)
-        return [Category(**cat) for cat in result["categories"]]
+        categories = []
+        for cat in result["categories"]:
+            if not existing_names or cat["name"] not in existing_names:
+                categories.append(Category(id=0, **cat))  # ID will be assigned later
+                if existing_names is not None:
+                    existing_names.add(cat["name"])
+        return categories
 
     def _generate_content_for_category(self, category: Category, content_id: int) -> Content:
         """
@@ -107,6 +127,64 @@ class ContentGenerator:
             category=category.name
         )
 
+    def _load_or_generate_categories(self, min_count: int = 100) -> List[Category]:
+        """Load categories from CSV or generate new ones."""
+        if self._categories is not None:
+            if len(self._categories) >= min_count:
+                return self._categories
+
+        # Try loading from CSV
+        if self.config.output_dir:
+            csv_path = self.config.output_dir / "categories.csv"
+            if csv_path.exists():
+                categories = CsvImporter.import_categories(csv_path)
+                if categories and len(categories) >= min_count:
+                    self._categories = categories
+                    return categories
+        else:
+            self.logger.warning("No output_dir configured, categories will not be persisted")
+
+        # Generate new categories
+        existing_names = set() if not self._categories else {c.name for c in self._categories}
+        categories = self._categories or []
+
+        # Keep generating until we have enough unique categories
+        while len(categories) < min_count:
+            new_categories = self._generate_categories(existing_names)
+            categories.extend(new_categories)
+
+        # Assign IDs and export
+        for i, cat in enumerate(categories):
+            cat.id = i + 1
+
+        if self.config.output_dir:
+            CsvExporter.export_categories(categories, self.config.output_dir / "categories.csv", self.config)
+        self._categories = categories
+        return categories
+
+
+    def _try_load_contents(self, count: int, csv_path: Optional[Union[str, Path]] = None) -> Optional[List[Content]]:
+        """Try to load contents from CSV file."""
+        # Try output_dir first if no specific path provided
+        if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
+            csv_path = self.config.output_dir / "contents.csv"
+            if csv_path.exists():
+                self.logger.info(f"Checking output directory: {csv_path}")
+                contents = CsvImporter.import_content(csv_path)
+                if contents and len(contents) >= count:
+                    self.logger.info(f"Reusing {count} items from {csv_path}")
+                    return contents[:count]
+
+        # Fall back to default behavior
+        file_path = Path(csv_path if csv_path else "contents.csv").resolve()
+        self.logger.debug(f"Looking for contents file at: {file_path}")
+        contents = CsvImporter.import_content(file_path)
+        if contents and len(contents) >= count:
+            self.logger.info(f"Reusing {count} items from {file_path}")
+            return contents[:count]
+
+        return None
+
     def generate_contents(self, count: int, reuse_file: bool = True,
                       csv_path: Optional[Union[str, Path]] = None) -> List[Content]:
         """
@@ -125,36 +203,18 @@ class ContentGenerator:
         """
         if count > 1000:
             raise ContentGenerationError("Cannot generate more than 1000 items")
-            
+
         if reuse_file:
-            # Try output_dir first if no specific path provided
-            if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
-                csv_path = self.config.output_dir / "contents.csv"
-                if csv_path.exists():
-                    self.logger.info(f"Checking output directory: {csv_path}")
-                    contents = CsvImporter.import_content(csv_path)
-                    if contents and len(contents) >= count:
-                        self.logger.info(f"Reusing {count} items from {csv_path}")
-                        return contents[:count]
-            
-            # Fall back to default behavior
-            file_path = Path(csv_path if csv_path else "contents.csv").resolve()
-            self.logger.debug(f"Looking for contents file at: {file_path}")
-            contents = CsvImporter.import_content(file_path)
-            if contents and len(contents) >= count:
-                self.logger.info(f"Reusing {count} items from {file_path}")
-                return contents[:count]
+            contents = self._try_load_contents(count, csv_path)
+            if contents:
+                return contents
 
         self.logger.info(f"Starting content generation for {self.config.service_type}")
-        categories = self._generate_categories()
-        self.logger.info(f"Generated {len(categories)} categories")
+        categories = self._load_or_generate_categories()
+        self.logger.info(f"Using {len(categories)} categories")
         for cat in categories:
             self.logger.debug(f"Category: {cat.name} - {cat.description}")
 
-        # Generate only as many categories as needed
-        categories = categories[:count]
-        self.logger.info(f"Using {len(categories)} categories")
-        
         contents = []
         for i in range(count):
             category = categories[i % len(categories)]
@@ -164,6 +224,6 @@ class ContentGenerator:
             )
             contents.append(content)
             self.logger.info(f"Progress: {len(contents)}/{count} items generated")
-        
+
         self.logger.info("Content generation completed")
         return contents

@@ -13,6 +13,24 @@ class CsvImporter:
     """Handles importing data from CSV files."""
 
     @staticmethod
+    def import_categories(input_path: Union[str, Path]) -> Optional[List[Category]]:
+        """Import categories from CSV."""
+        try:
+            categories = []
+            with open(input_path, "r", newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    category = Category(
+                        id=int(row["Category ID"]),
+                        name=row["Name"],
+                        description=row["Description"]
+                    )
+                    categories.append(category)
+            return categories
+        except (FileNotFoundError, KeyError):
+            return None
+
+    @staticmethod
     def import_content(input_path: Union[str, Path]) -> Optional[List[Content]]:
         """Import content from CSV."""
         try:
@@ -44,8 +62,10 @@ class CsvImporter:
                     if categories:
                         from logfaker.generators.users import UserGenerator
                         generator = UserGenerator(GeneratorConfig(api_key="dummy"))
+                        # Get category names for validation
+                        category_names = [cat.name for cat in categories]
                         # Validate while maintaining original order where possible
-                        valid_preferences = generator.validate_preferences(preferences, categories)
+                        valid_preferences = generator.validate_preferences(preferences, category_names)
                         preferences = [p for p in preferences if p in valid_preferences]
                         # If no valid preferences found, use the first category as fallback
                         if not preferences:

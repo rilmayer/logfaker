@@ -85,17 +85,17 @@ class ElasticsearchEngine(SearchEngine):
 
     def setup_index(self, force: bool = False) -> bool:
         """Set up the search index, optionally forcing recreation.
-        
+
         Args:
             force: If True, delete existing index before setup
-        
+
         Returns:
             True if setup was successful
         """
         try:
             if force and self.client.indices.exists(index=self.config.index):
                 self.delete_index()
-            
+
             if not self.client.indices.exists(index=self.config.index):
                 if self.config.language == "ja":
                     index_body = {

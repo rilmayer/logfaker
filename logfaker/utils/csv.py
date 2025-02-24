@@ -6,11 +6,30 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 from logfaker.core.config import LogfakerConfig
-from logfaker.core.models import Content, SearchLog, SearchQuery, UserProfile
+from logfaker.core.models import Category, Content, SearchLog, SearchQuery, UserProfile
 
 
 class CsvExporter:
     """Handles exporting data to CSV format."""
+
+    @staticmethod
+    def export_categories(
+        categories: List[Category],
+        output_path: Union[str, Path],
+        config: Optional[LogfakerConfig] = None
+    ) -> None:
+        """Export categories to CSV."""
+        path = CsvExporter._resolve_path(output_path, config)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Category ID", "Name", "Description"])
+            for category in categories:
+                writer.writerow([
+                    category.id,
+                    category.name,
+                    category.description
+                ])
 
     @staticmethod
     def _resolve_path(output_path: Union[str, Path], config: Optional[LogfakerConfig] = None) -> Path:
