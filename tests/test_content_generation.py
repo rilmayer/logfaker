@@ -115,7 +115,7 @@ def test_category_regeneration(tmp_path, mock_openai_client):
     generator.client = mock_openai_client
 
     # Generate initial small set
-    contents = generator.generate_contents(5)
+    generator.generate_contents(5)
 
     # Generate larger set - should trigger regeneration
     contents2 = generator.generate_contents(150)
