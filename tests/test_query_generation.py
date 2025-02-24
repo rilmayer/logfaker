@@ -1,7 +1,5 @@
 """Tests for query generation functionality."""
 
-
-
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import UserProfile
 from logfaker.generators.queries import QueryGenerator

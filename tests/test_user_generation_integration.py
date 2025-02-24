@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from logfaker.core.config import GeneratorConfig
-from logfaker.core.models import Category, UserProfile
+from logfaker.core.models import UserProfile
 from logfaker.generators.users import UserGenerator
 from logfaker.utils.csv import CsvExporter
 
