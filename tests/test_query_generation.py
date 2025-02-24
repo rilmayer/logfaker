@@ -1,6 +1,7 @@
 """Tests for query generation functionality."""
 
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from logfaker.core.config import GeneratorConfig
@@ -11,9 +12,7 @@ from logfaker.generators.queries import QueryGenerator
 def test_query_generation(mock_openai_client):
     """Test that query generation produces valid queries."""
     config = GeneratorConfig(
-        api_key="test-key",
-        service_type="図書館の蔵書検索サービス",
-        language="ja"
+        api_key="test-key", service_type="図書館の蔵書検索サービス", language="ja"
     )
     generator = QueryGenerator(config)
     generator.client = mock_openai_client
@@ -22,7 +21,7 @@ def test_query_generation(mock_openai_client):
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
-        preferences=["プログラミング", "AI"]
+        preferences=["プログラミング", "AI"],
     )
 
     query = generator.generate_query(user)
@@ -34,9 +33,7 @@ def test_query_generation(mock_openai_client):
 def test_multiple_query_generation(mock_openai_client):
     """Test that multiple query generation works correctly."""
     config = GeneratorConfig(
-        api_key="test-key",
-        service_type="図書館の蔵書検索サービス",
-        language="ja"
+        api_key="test-key", service_type="図書館の蔵書検索サービス", language="ja"
     )
     generator = QueryGenerator(config)
     generator.client = mock_openai_client
@@ -45,7 +42,7 @@ def test_multiple_query_generation(mock_openai_client):
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
-        preferences=["プログラミング", "AI"]
+        preferences=["プログラミング", "AI"],
     )
 
     queries = generator.generate_queries(user, count=3)
@@ -55,6 +52,7 @@ def test_multiple_query_generation(mock_openai_client):
         assert query.user_id == user.user_id
         assert query.query_content
         assert query.category
+
 
 # OpenAI APIを使用してテストする場合は以下のコメントを外して実行
 # if __name__ == "__main__":

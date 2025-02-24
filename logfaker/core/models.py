@@ -27,7 +27,9 @@ class UserProfile(BaseModel):
     """Model for virtual user profiles."""
 
     user_id: int = Field(description="Unique identifier for the user")
-    brief_explanation: str = Field(description="Brief description of the user's background and interests")
+    brief_explanation: str = Field(
+        description="Brief description of the user's background and interests"
+    )
     profession: str = Field(description="Professional occupation of the user")
     preferences: List[str] = Field(
         description="List of user's interests and preferences"
