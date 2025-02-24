@@ -25,7 +25,7 @@ config = LogfakerConfig(
         api_key="your-openai-api-key",    # Required: OpenAI API key
         service_type="Book search service", # Optional: Defaults to "Book search service"
         language="en",                     # Optional: Defaults to "en"
-        ai_model="gpt4o-mini",            # Optional: Defaults to gpt4o-mini
+        ai_model="gpt-4o-mini",            # Optional: Defaults to gpt-4o-mini
         log_level="INFO"                  # Optional: Defaults to INFO
     )
 )

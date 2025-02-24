@@ -23,7 +23,7 @@ config = LogfakerConfig(
         api_key="your-openai-api-key",    # 必須: OpenAI API キー
         service_type="図書館の蔵書検索サービス",  # オプション: デフォルトは "Book search service"
         language="ja",                     # オプション: デフォルトは "en"
-        ai_model="gpt4o-mini",            # オプション: デフォルトは gpt4o-mini
+        ai_model="gpt-4o-mini",            # オプション: デフォルトは gpt-4o-mini
         log_level="INFO"                  # オプション: デフォルトは INFO
     )
 )
