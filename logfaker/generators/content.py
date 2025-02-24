@@ -134,12 +134,15 @@ class ContentGenerator:
                 return self._categories
             
         # Try loading from CSV
-        csv_path = self.config.output_dir / "categories.csv" if self.config.output_dir else Path("categories.csv")
-        if csv_path.exists():
-            categories = CsvImporter.import_categories(csv_path)
-            if categories and len(categories) >= min_count:
-                self._categories = categories
-                return categories
+        if self.config.output_dir:
+            csv_path = self.config.output_dir / "categories.csv"
+            if csv_path.exists():
+                categories = CsvImporter.import_categories(csv_path)
+                if categories and len(categories) >= min_count:
+                    self._categories = categories
+                    return categories
+        else:
+            self.logger.warning("No output_dir configured, categories will not be persisted")
 
         # Generate new categories
         existing_names = set() if not self._categories else {c.name for c in self._categories}
@@ -154,7 +157,8 @@ class ContentGenerator:
         for i, cat in enumerate(categories):
             cat.id = i + 1
         
-        CsvExporter.export_categories(categories, csv_path, self.config)
+        if self.config.output_dir:
+            CsvExporter.export_categories(categories, self.config.output_dir / "categories.csv", self.config)
         self._categories = categories
         return categories
 
