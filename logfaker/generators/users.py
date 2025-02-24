@@ -110,12 +110,23 @@ class UserGenerator:
             count: Number of users to generate
             categories: List of available categories to choose interests from
             reuse_file: If True, try to load from users.csv first
-            csv_path: Optional path to users.csv file. If not provided, uses "users.csv" in current directory
+            csv_path: Optional path to users.csv file. If not provided, uses output_dir/users.csv or users.csv
 
         Returns:
             List of UserProfile objects
         """
         if reuse_file:
+            # Try output_dir first if no specific path provided
+            if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
+                csv_path = self.config.output_dir / "users.csv"
+                if csv_path.exists():
+                    self.logger.info(f"Checking output directory: {csv_path}")
+                    users = CsvImporter.import_users(csv_path, categories)
+                    if users and len(users) >= count:
+                        self.logger.info(f"Reusing {count} profiles from {csv_path}")
+                        return users[:count]
+            
+            # Fall back to default behavior
             file_path = Path(csv_path if csv_path else "users.csv").resolve()
             self.logger.debug(f"Looking for users file at: {file_path}")
             users = CsvImporter.import_users(file_path, categories)

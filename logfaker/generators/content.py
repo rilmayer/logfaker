@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from openai import OpenAI
 
@@ -107,13 +107,15 @@ class ContentGenerator:
             category=category.name
         )
 
-    def generate_contents(self, count: int, reuse_file: bool = True) -> List[Content]:
+    def generate_contents(self, count: int, reuse_file: bool = True,
+                      csv_path: Optional[Union[str, Path]] = None) -> List[Content]:
         """
         Generate multiple content entries with category-based limits.
 
         Args:
             count: Number of contents to generate (max 1000)
             reuse_file: If True, try to load from contents.csv first
+            csv_path: Optional path to contents.csv file. If not provided, uses output_dir/contents.csv or contents.csv
 
         Returns:
             List of Content objects
@@ -125,9 +127,22 @@ class ContentGenerator:
             raise ContentGenerationError("Cannot generate more than 1000 items")
             
         if reuse_file:
-            contents = CsvImporter.import_content("contents.csv")
+            # Try output_dir first if no specific path provided
+            if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
+                csv_path = self.config.output_dir / "contents.csv"
+                if csv_path.exists():
+                    self.logger.info(f"Checking output directory: {csv_path}")
+                    contents = CsvImporter.import_content(csv_path)
+                    if contents and len(contents) >= count:
+                        self.logger.info(f"Reusing {count} items from {csv_path}")
+                        return contents[:count]
+            
+            # Fall back to default behavior
+            file_path = Path(csv_path if csv_path else "contents.csv").resolve()
+            self.logger.debug(f"Looking for contents file at: {file_path}")
+            contents = CsvImporter.import_content(file_path)
             if contents and len(contents) >= count:
-                self.logger.info(f"Reusing {count} items from contents.csv")
+                self.logger.info(f"Reusing {count} items from {file_path}")
                 return contents[:count]
 
         self.logger.info(f"Starting content generation for {self.config.service_type}")
