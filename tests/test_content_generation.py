@@ -8,13 +8,28 @@ from logfaker.core.config import GeneratorConfig
 from logfaker.core.exceptions import ContentGenerationError
 from logfaker.generators.content import ContentGenerator
 
+@pytest.fixture(autouse=True)
+def cleanup_categories():
+    """Clean up categories.csv before and after each test."""
+    # Clean up before test
+    categories_csv = Path("categories.csv")
+    if categories_csv.exists():
+        categories_csv.unlink()
+    
+    yield
+    
+    # Clean up after test
+    if categories_csv.exists():
+        categories_csv.unlink()
 
-def test_category_generation(mock_openai_client):
+
+def test_category_generation(mock_openai_client, tmp_path):
     """Test that category generation produces expected number of categories."""
     config = GeneratorConfig(
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
-        language="ja"
+        language="ja",
+        output_dir=tmp_path
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -30,12 +45,13 @@ def test_category_generation(mock_openai_client):
         assert category.description
 
 
-def test_content_generation_limits(mock_openai_client):
+def test_content_generation_limits(mock_openai_client, tmp_path):
     """Test that content generation respects the 1000 item limit."""
     config = GeneratorConfig(
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
-        language="ja"
+        language="ja",
+        output_dir=tmp_path
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -49,12 +65,13 @@ def test_content_generation_limits(mock_openai_client):
     assert len(contents) == 50
 
 
-def test_content_generation_output(mock_openai_client):
+def test_content_generation_output(mock_openai_client, tmp_path):
     """Test that generated content has all required fields."""
     config = GeneratorConfig(
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
-        language="ja"
+        language="ja",
+        output_dir=tmp_path
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -116,6 +133,7 @@ def test_category_cycling(tmp_path, mock_openai_client):
         api_key="test-key",
         output_dir=tmp_path
     )
+    
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
     
