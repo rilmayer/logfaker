@@ -42,9 +42,10 @@ def test_openai_user_generation():
 def test_openai_multiple_user_generation():
     """Test generating multiple users with real OpenAI API."""
     config = GeneratorConfig(
-        api_key="dummy-key",
+        api_key=os.getenv("OPENAI_API_KEY"),
         service_type="図書館の蔵書検索サービス",
-        language="ja"
+        language="ja",
+        ai_model="gpt-3.5-turbo"  # Using a stable model for testing
     )
     
     categories = [

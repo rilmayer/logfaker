@@ -1,14 +1,28 @@
 """Tests for CSV file reuse functionality."""
 
 import json
+import shutil
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
+@pytest.fixture(autouse=True)
+def cleanup_test_files(request, tmp_path):
+    """Clean up test files after each test."""
+    yield
+    # Clean up tmp_path and any subdirectories
+    if tmp_path.exists():
+        shutil.rmtree(tmp_path)
+    # Clean up any relative paths in current directory
+    subdir = Path("subdir")
+    if subdir.exists():
+        shutil.rmtree(subdir)
+
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import Category
 from logfaker.generators.content import ContentGenerator
+from logfaker.core.config import LogfakerConfig
 from logfaker.generators.users import UserGenerator
 from logfaker.utils.csv import CsvExporter
 
@@ -83,6 +97,91 @@ def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     # Reset mock and try to generate again with reuse
     mock_openai_client.reset_mock()
     reused = generator.generate_users(5, categories, reuse_file=True)
+    assert len(reused) == len(users)
+    assert all(r.user_id == u.user_id for r, u in zip(reused, users))
+    assert all(r.preferences == u.preferences for r, u in zip(reused, users))
+
+def test_output_directory_config(tmp_path):
+    """Test that output directory configuration works."""
+    output_dir = tmp_path / "outputs"
+    config = LogfakerConfig(output_dir=output_dir)
+    
+    # Test with filename only
+    CsvExporter.export_users([], "users.csv", config=config)
+    assert (output_dir / "users.csv").exists()
+    
+    # Test with absolute path (should ignore output_dir)
+    abs_path = tmp_path / "elsewhere" / "users.csv"
+    CsvExporter.export_users([], abs_path, config=config)
+    assert abs_path.exists()
+    
+    # Test with relative path containing directories
+    rel_path = Path("subdir/users.csv")
+    CsvExporter.export_users([], rel_path, config=config)
+    assert (Path.cwd() / rel_path).exists()
+    
+    # Test assertions are done, cleanup will be handled by fixture
+
+
+def test_output_directory_reuse(mock_openai_client, tmp_path):
+    """Test that generators reuse files from output directory."""
+    output_dir = tmp_path / "outputs"
+    output_dir.mkdir(parents=True)
+    
+    # Create configs for generators and exporter
+    gen_config = GeneratorConfig(
+        api_key="test-key",
+        service_type="図書館の蔵書検索サービス",
+        language="ja",
+        output_dir=output_dir
+    )
+    export_config = LogfakerConfig(output_dir=output_dir)
+    
+    # Test content reuse from output directory
+    content_gen = ContentGenerator(gen_config)
+    mock_response = MagicMock()
+    mock_response.choices[0].message.function_call.arguments = json.dumps({
+        "title": "人工知能入門",
+        "description": "AIの基礎から応用まで網羅的に解説するガイド"
+    })
+    mock_openai_client.chat.completions.create.return_value = mock_response
+    content_gen.client = mock_openai_client
+    
+    contents = content_gen.generate_contents(10, reuse_file=False)
+    CsvExporter.export_content(contents, "contents.csv", config=export_config)
+    
+    # Should find and reuse content from output directory
+    reused = content_gen.generate_contents(10, reuse_file=True)
+    assert len(reused) == len(contents)
+    assert all(r.content_id == c.content_id for r, c in zip(reused, contents))
+    
+    # Test user reuse from output directory
+    categories = [
+        Category(name="テクノロジー", description="技術関連の書籍"),
+        Category(name="文学", description="小説や詩集")
+    ]
+    user_gen = UserGenerator(gen_config)
+    
+    # Configure mock responses for multiple users
+    def create_mock_response(user_id):
+        response = MagicMock()
+        response.choices[0].message.function_call.arguments = json.dumps({
+            "brief_explanation": f"技術書が好きなエンジニア {user_id}",
+            "profession": "エンジニア",
+            "preferences": ["テクノロジー", "文学"]
+        })
+        return response
+    
+    mock_openai_client.chat.completions.create.side_effect = [
+        create_mock_response(i) for i in range(1, 6)
+    ]
+    user_gen.client = mock_openai_client
+    
+    users = user_gen.generate_users(5, categories, reuse_file=False)
+    CsvExporter.export_users(users, "users.csv", config=export_config)
+    
+    # Should find and reuse users from output directory
+    reused = user_gen.generate_users(5, categories, reuse_file=True)
     assert len(reused) == len(users)
     assert all(r.user_id == u.user_id for r, u in zip(reused, users))
     assert all(r.preferences == u.preferences for r, u in zip(reused, users))

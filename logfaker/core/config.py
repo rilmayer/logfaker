@@ -1,6 +1,7 @@
 """Configuration settings for Logfaker."""
 
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -33,6 +34,10 @@ class GeneratorConfig(BaseModel):
         description="Type of search service (e.g., library catalog)"
     )
     log_level: str = Field(default="INFO", description="Logging level for generators")
+    output_dir: Optional[Path] = Field(
+        default=None,
+        description="Directory for output files. If None, uses current directory"
+    )
 
 
 class LogfakerConfig(BaseModel):
@@ -60,4 +65,8 @@ class LogfakerConfig(BaseModel):
     )
     catalog_type: str = Field(
         default="library", description="Type of catalog system (library, retail, etc.)"
+    )
+    output_dir: Optional[Path] = Field(
+        default=None,
+        description="Directory for all output files. If None, uses current directory"
     )
