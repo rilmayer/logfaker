@@ -1,7 +1,6 @@
 """Tests for content generation functionality."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -63,8 +62,8 @@ def test_content_generation_limits(mock_openai_client, tmp_path):
         generator.generate_contents(1001)
 
     # Should work for exactly 50 items
-    contents = generator.generate_contents(50)
-    assert len(contents) == 50
+    result = generator.generate_contents(50)
+    assert len(result) == 50
 
 
 def test_content_generation_output(mock_openai_client, tmp_path):

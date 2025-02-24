@@ -1,7 +1,6 @@
 """CSV import utilities."""
 
 import csv
-import json
 from pathlib import Path
 from typing import List, Optional, Union
 

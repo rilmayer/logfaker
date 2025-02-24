@@ -1,6 +1,6 @@
 """Elasticsearch implementation of search engine interface."""
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from elasticsearch import Elasticsearch
 

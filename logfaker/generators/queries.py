@@ -3,7 +3,7 @@
 import json
 import logging
 import random
-from typing import List, Optional
+from typing import List
 
 from openai import OpenAI
 

@@ -177,8 +177,6 @@ def test_openai_user_generation_error_handling():
         language="ja",
     )
 
-    categories = [Category(id=1, name="テクノロジー", description="技術関連の書籍")]
-
     generator = UserGenerator(config)
     with pytest.raises(Exception):  # Should raise an OpenAI API error
         generator.generate_user()

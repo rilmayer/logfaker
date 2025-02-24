@@ -1,8 +1,6 @@
 """Tests for query generation functionality."""
 
-from unittest.mock import MagicMock, patch
 
-import pytest
 
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import UserProfile

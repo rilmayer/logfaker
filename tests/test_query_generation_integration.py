@@ -1,10 +1,13 @@
 """Integration tests for query generation with OpenAI API."""
 
 import os
+
 import pytest
+
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.models import UserProfile
 from logfaker.generators.queries import QueryGenerator
+
 
 @pytest.mark.integration
 @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OpenAI API key not set")
@@ -14,7 +17,7 @@ def test_openai_query_generation():
         api_key=os.getenv("OPENAI_API_KEY"),
         service_type="図書館の蔵書検索サービス",
         language="ja",
-        ai_model="gpt-3.5-turbo"  # Using a stable model for testing
+        ai_model="gpt-3.5-turbo",  # Using a stable model for testing
     )
 
     generator = QueryGenerator(config)
@@ -22,7 +25,7 @@ def test_openai_query_generation():
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
-        preferences=["プログラミング", "AI"]
+        preferences=["プログラミング", "AI"],
     )
 
     query = generator.generate_query(user)
@@ -40,9 +43,7 @@ def test_openai_query_generation():
 def test_openai_query_generation_error_handling():
     """Test error handling with invalid API key."""
     config = GeneratorConfig(
-        api_key="invalid-key",
-        service_type="図書館の蔵書検索サービス",
-        language="ja"
+        api_key="invalid-key", service_type="図書館の蔵書検索サービス", language="ja"
     )
 
     generator = QueryGenerator(config)
@@ -50,7 +51,7 @@ def test_openai_query_generation_error_handling():
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
-        preferences=["プログラミング", "AI"]
+        preferences=["プログラミング", "AI"],
     )
 
     with pytest.raises(Exception):  # Should raise an OpenAI API error

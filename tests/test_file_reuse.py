@@ -29,9 +29,7 @@ def cleanup_test_files(_, tmp_path):
 def test_content_file_reuse(mock_openai_client, tmp_path):
     """Test that content generation reuses CSV files."""
     config = GeneratorConfig(
-        api_key="test-key",
-        service_type="図書館の蔵書検索サービス",
-        language="ja"
+        api_key="test-key", service_type="図書館の蔵書検索サービス", language="ja"
     )
     generator = ContentGenerator(config)
 
@@ -40,11 +38,13 @@ def test_content_file_reuse(mock_openai_client, tmp_path):
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.function_call = MagicMock()
     mock_response.choices[0].message.function_call.name = "create_content"
-    mock_response.choices[0].message.function_call.arguments = json.dumps({
-        "title": "人工知能入門",
-        "description": "AIの基礎から応用まで網羅的に解説するガイド",
-        "category": "カテゴリー1"
-    })
+    mock_response.choices[0].message.function_call.arguments = json.dumps(
+        {
+            "title": "人工知能入門",
+            "description": "AIの基礎から応用まで網羅的に解説するガイド",
+            "category": "カテゴリー1",
+        }
+    )
     mock_openai_client.chat.completions.create.return_value = mock_response
     generator.client = mock_openai_client
 
@@ -62,19 +62,16 @@ def test_content_file_reuse(mock_openai_client, tmp_path):
 def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     """Test that user generation reuses CSV files."""
     config = GeneratorConfig(
-        api_key="test-key",
-        service_type="図書館の蔵書検索サービス",
-        language="ja"
+        api_key="test-key", service_type="図書館の蔵書検索サービス", language="ja"
     )
     generator = UserGenerator(config)
 
     mock_openai_client.chat.completions.create.side_effect = [
         create_category_response(),  # First call for categories
-        *[create_user_response(i + 1) for i in range(5)]  # Then user responses
+        *[create_user_response(i + 1) for i in range(5)],  # Then user responses
     ]
     generator.client = mock_openai_client
     generator.content_generator.client = mock_openai_client
-
 
     # Generate and save users
     users = generator.generate_users(5, reuse_file=False)
@@ -90,6 +87,7 @@ def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     assert len(reused) == len(users)
     assert all(r.user_id == u.user_id for r, u in zip(reused, users))
     assert all(r.preferences == u.preferences for r, u in zip(reused, users))
+
 
 def test_output_directory_config(tmp_path):
     """Test that output directory configuration works."""
@@ -118,8 +116,7 @@ def create_category_response():
     # Create the response data
     response_data = {
         "categories": [
-            {"name": f"カテゴリー{i}", "description": f"説明{i}"}
-            for i in range(1, 101)
+            {"name": f"カテゴリー{i}", "description": f"説明{i}"} for i in range(1, 101)
         ]
     }
 
@@ -134,11 +131,19 @@ def create_category_response():
     mock.choices[0].finish_reason = "function_call"
 
     # Configure mock to return the same arguments string consistently
-    mock.choices[0].message.function_call.configure_mock(arguments=json.dumps(response_data))
+    mock.choices[0].message.function_call.configure_mock(
+        arguments=json.dumps(response_data)
+    )
 
     # Add debug logging
-    print("\nCategory response mock args:", mock.choices[0].message.function_call.arguments)
-    print("Category response mock type:", type(mock.choices[0].message.function_call.arguments))
+    print(
+        "\nCategory response mock args:",
+        mock.choices[0].message.function_call.arguments,
+    )
+    print(
+        "Category response mock type:",
+        type(mock.choices[0].message.function_call.arguments),
+    )
     return mock
 
 
@@ -148,7 +153,7 @@ def create_content_response():
     response_data = {
         "title": "人工知能入門",
         "description": "AIの基礎から応用まで網羅的に解説するガイド",
-        "category": "カテゴリー1"
+        "category": "カテゴリー1",
     }
 
     # Create a proper mock structure
@@ -162,11 +167,18 @@ def create_content_response():
     mock.choices[0].finish_reason = "function_call"
 
     # Configure mock to return the same arguments string consistently
-    mock.choices[0].message.function_call.configure_mock(arguments=json.dumps(response_data))
+    mock.choices[0].message.function_call.configure_mock(
+        arguments=json.dumps(response_data)
+    )
 
     # Add debug logging
-    print("\nContent response mock args:", mock.choices[0].message.function_call.arguments)
-    print("Content response mock type:", type(mock.choices[0].message.function_call.arguments))
+    print(
+        "\nContent response mock args:", mock.choices[0].message.function_call.arguments
+    )
+    print(
+        "Content response mock type:",
+        type(mock.choices[0].message.function_call.arguments),
+    )
     return mock
 
 
@@ -176,7 +188,9 @@ def create_user_response(user_id: int):
     response_data = {
         "brief_explanation": f"技術書が好きなエンジニア {user_id}",
         "profession": "エンジニア",
-        "preferences": [f"カテゴリー{i}" for i in range(1, 3)]  # Use first two categories
+        "preferences": [
+            f"カテゴリー{i}" for i in range(1, 3)
+        ],  # Use first two categories
     }
 
     # Create a proper mock structure
@@ -190,14 +204,19 @@ def create_user_response(user_id: int):
     mock.choices[0].finish_reason = "function_call"
 
     # Configure mock to return the same arguments string consistently
-    mock.choices[0].message.function_call.configure_mock(arguments=json.dumps(response_data))
+    mock.choices[0].message.function_call.configure_mock(
+        arguments=json.dumps(response_data)
+    )
 
     # Add debug logging
     print(f"\nUser response {user_id} data:", response_data)
-    print(f"User response {user_id} mock args:", mock.choices[0].message.function_call.arguments)
+    print(
+        f"User response {user_id} mock args:",
+        mock.choices[0].message.function_call.arguments,
+    )
     print(
         f"User response {user_id} mock type:",
-        type(mock.choices[0].message.function_call.arguments)
+        type(mock.choices[0].message.function_call.arguments),
     )
     return mock
 
@@ -212,7 +231,7 @@ def test_output_directory_reuse(mock_openai_client, tmp_path):
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
         language="ja",
-        output_dir=output_dir
+        output_dir=output_dir,
     )
     export_config = LogfakerConfig(output_dir=output_dir)
 
@@ -222,7 +241,7 @@ def test_output_directory_reuse(mock_openai_client, tmp_path):
     # Set up mock responses for content generation
     mock_openai_client.chat.completions.create.side_effect = [
         create_category_response(),  # First call for categories
-        *[create_content_response() for _ in range(10)]  # Then content responses
+        *[create_content_response() for _ in range(10)],  # Then content responses
     ]
     content_gen.client = mock_openai_client
 
@@ -242,7 +261,9 @@ def test_output_directory_reuse(mock_openai_client, tmp_path):
     content_mock = MagicMock()
 
     # Set up mock responses for user generation
-    user_mock.chat.completions.create.side_effect = [create_user_response(i + 1) for i in range(5)]
+    user_mock.chat.completions.create.side_effect = [
+        create_user_response(i + 1) for i in range(5)
+    ]
 
     # Set up mock response for category generation
     content_mock.chat.completions.create.return_value = create_category_response()
