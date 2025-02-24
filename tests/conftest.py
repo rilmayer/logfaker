@@ -10,15 +10,21 @@ def mock_openai_response():
     """Mock OpenAI API response."""
     def create_response(function_name):
         if function_name == "create_categories":
+            # Generate 100+ categories for testing
+            categories = []
+            prefixes = ["技術", "文学", "科学", "芸術", "歴史", "社会", "自然", "文化", "経済", "教育"]
+            suffixes = ["入門", "理論", "実践", "研究", "概論", "応用", "基礎", "発展", "解説", "分析"]
+            descriptions = ["基本から応用まで", "詳細な解説", "実践的なガイド", "包括的な入門書", "専門的な解説"]
+            
+            for i, prefix in enumerate(prefixes):
+                for j, suffix in enumerate(suffixes):
+                    categories.append({
+                        "name": f"{prefix}の{suffix}",
+                        "description": f"{prefix}に関する{descriptions[j % len(descriptions)]}"
+                    })
+            
             arguments = {
-                "categories": [
-                    {"name": "テクノロジー", "description": "技術関連の書籍"},
-                    {"name": "プログラミング", "description": "プログラミング関連の書籍"},
-                    {"name": "データサイエンス", "description": "データ分析と機械学習の書籍"},
-                    {"name": "ビジネス", "description": "ビジネスと経営の書籍"},
-                    {"name": "文学", "description": "小説と文学作品"},
-                    {"name": "歴史", "description": "歴史関連の書籍"}
-                ]
+                "categories": categories
             }
         elif function_name == "create_content":
             arguments = {
