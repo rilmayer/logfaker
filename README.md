@@ -1,6 +1,8 @@
 # Logfaker
 
-Generate realistic test data for search engines, focusing on library catalog search systems.
+[日本語のREADMEはこちら](README.ja.md)
+
+Logfaker is a tool for generating realistic test data for search engines. It generates content, users, and search queries based on the provided configurations, and can output search logs by integrating with search engines like Elasticsearch. This makes it easy to prepare the necessary data for testing and demonstration purposes for search engines.
 
 ## Installation & Setup
 
