@@ -14,7 +14,7 @@ from logfaker.utils.csv import CsvExporter
 
 
 @pytest.fixture(autouse=True)
-def cleanup_test_files(_, tmp_path):
+def cleanup_test_files(tmp_path):
     """Clean up test files after each test."""
     yield
     # Clean up tmp_path and any subdirectories

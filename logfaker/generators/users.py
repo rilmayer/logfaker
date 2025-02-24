@@ -142,43 +142,23 @@ class UserGenerator:
         reuse_file: bool = True,
         csv_path: Optional[Union[str, Path]] = None,
     ) -> List[UserProfile]:
-        """
-        Generate multiple user profiles.
+        """Generate multiple user profiles."""
+        from logfaker.utils.csv import CsvExporter
 
-        Args:
-            count: Number of users to generate
-            reuse_file: If True, try to load from users.csv first
-            csv_path: Optional path to users.csv file. If not provided,
-                uses output_dir/users.csv or users.csv
-
-        Returns:
-            List of UserProfile objects
-        """
         if reuse_file:
-            # Try output_dir first if no specific path provided
-            has_output_dir = (
-                csv_path is None
-                and hasattr(self.config, "output_dir")
-                and self.config.output_dir
+            # Resolve path using CsvExporter
+            file_path = CsvExporter._resolve_path(
+                csv_path if csv_path else "users.csv", self.config
             )
-            if has_output_dir:
-                csv_path = self.config.output_dir / "users.csv"
-                if csv_path.exists():
-                    self.logger.info("Checking output directory: %s", csv_path)
-                    categories = self.content_generator._load_or_generate_categories()
-                    users = CsvImporter.import_users(csv_path, categories)
-                    if users and len(users) >= count:
-                        self.logger.info("Reusing %d profiles from %s", count, csv_path)
-                        return users[:count]
 
-            # Fall back to default behavior
-            file_path = Path(csv_path if csv_path else "users.csv").resolve()
             self.logger.debug("Looking for users file at: %s", file_path)
-            categories = self.content_generator._load_or_generate_categories()
-            users = CsvImporter.import_users(file_path, categories)
-            if users and len(users) >= count:
-                self.logger.info("Reusing %d profiles from %s", count, file_path)
-                return users[:count]
+            if file_path.exists():
+                categories = self.content_generator._load_or_generate_categories()
+                users = CsvImporter.import_users(file_path, categories)
+                if users and len(users) >= count:
+                    self.logger.info("Reusing %d profiles from %s", count, file_path)
+                    return users[:count]
+
         self.logger.info("Generating %d user profiles", count)
         users = [self.generate_user(i + 1) for i in range(count)]
         self.logger.info("Generated %d user profiles", len(users))

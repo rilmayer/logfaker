@@ -185,28 +185,20 @@ class ContentGenerator:
         self, count: int, csv_path: Optional[Union[str, Path]] = None
     ) -> Optional[List[Content]]:
         """Try to load contents from CSV file."""
+        from logfaker.utils.csv import CsvExporter
+
         # Try output_dir first if no specific path provided
-        if (
-            csv_path is None
-            and hasattr(self.config, "output_dir")
-            and self.config.output_dir
-        ):
-            csv_path = self.config.output_dir / "contents.csv"
-            if csv_path.exists():
-                self.logger.info(f"Checking output directory: {csv_path}")
-                contents = CsvImporter.import_content(csv_path)
-                if contents and len(contents) >= count:
-                    self.logger.info(f"Reusing {count} items from {csv_path}")
-                    return contents[:count]
+        if csv_path is None:
+            file_path = CsvExporter._resolve_path("contents.csv", self.config)
+        else:
+            file_path = CsvExporter._resolve_path(csv_path, self.config)
 
-        # Fall back to default behavior
-        file_path = Path(csv_path if csv_path else "contents.csv").resolve()
         self.logger.debug(f"Looking for contents file at: {file_path}")
-        contents = CsvImporter.import_content(file_path)
-        if contents and len(contents) >= count:
-            self.logger.info(f"Reusing {count} items from {file_path}")
-            return contents[:count]
-
+        if file_path.exists():
+            contents = CsvImporter.import_content(file_path)
+            if contents and len(contents) >= count:
+                self.logger.info(f"Reusing {count} items from {file_path}")
+                return contents[:count]
         return None
 
     def generate_contents(
