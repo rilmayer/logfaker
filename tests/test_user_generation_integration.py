@@ -17,7 +17,7 @@ def test_openai_user_generation(mock_openai_client):
         service_type="図書館の蔵書検索サービス",
         language="ja"
     )
-    
+
     # Configure mock responses
     def create_category_response():
         mock_response = MagicMock()
@@ -48,12 +48,12 @@ def test_openai_user_generation(mock_openai_client):
         create_category_response(),  # First call for categories
         create_user_response()  # Then user response
     ]
-    
+
     generator = UserGenerator(config)
     generator.client = mock_openai_client
     generator.content_generator.client = mock_openai_client
     user = generator.generate_user()
-    
+
     # Verify user profile structure and content
     assert user.user_id > 0, "User ID should be positive"
     assert user.brief_explanation, "Brief explanation should not be empty"
@@ -76,10 +76,10 @@ def test_openai_multiple_user_generation():
         language="ja",
         ai_model="gpt-3.5-turbo"  # Using a stable model for testing
     )
-    
+
     generator = UserGenerator(config)
     users = generator.generate_users(count=3)
-    
+
     assert len(users) == 3, "Should generate requested number of users"
     for i, user in enumerate(users, 1):
         assert user.user_id == i, f"User ID should be {i}"
@@ -95,7 +95,7 @@ def test_user_generation_file_reuse(tmp_path, mock_openai_client):
         service_type="図書館の蔵書検索サービス",
         language="ja"
     )
-    
+
     # Configure mock responses
     def create_category_response():
         mock_response = MagicMock()
@@ -126,11 +126,11 @@ def test_user_generation_file_reuse(tmp_path, mock_openai_client):
         create_category_response(),  # First call for categories
         create_user_response()  # Then user response
     ]
-    
+
     generator = UserGenerator(config)
     generator.client = mock_openai_client
     generator.content_generator.client = mock_openai_client
-    
+
     # Create test users directly
     original_users = [
         UserProfile(
@@ -148,7 +148,7 @@ def test_user_generation_file_reuse(tmp_path, mock_openai_client):
     ]
     csv_path = tmp_path / "users.csv"
     CsvExporter.export_users(original_users, csv_path)
-    
+
     # Try to generate again with reuse using absolute path
     reused_users = generator.generate_users(count=2, reuse_file=True, csv_path=csv_path)
     assert len(reused_users) == len(original_users), "Should reuse same number of users"
@@ -166,11 +166,11 @@ def test_openai_user_generation_error_handling():
         service_type="図書館の蔵書検索サービス",
         language="ja"
     )
-    
+
     categories = [
         Category(id=1, name="テクノロジー", description="技術関連の書籍")
     ]
-    
+
     generator = UserGenerator(config)
     with pytest.raises(Exception):  # Should raise an OpenAI API error
         generator.generate_user()

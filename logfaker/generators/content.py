@@ -58,7 +58,7 @@ class ContentGenerator:
                 "required": ["categories"]
             }
         }]
-        
+
         response = self.client.chat.completions.create(
             model=self.config.ai_model,
             messages=[{
@@ -75,7 +75,7 @@ class ContentGenerator:
             functions=functions,
             function_call={"name": "create_categories"}
         )
-        
+
         result = json.loads(response.choices[0].message.function_call.arguments)
         categories = []
         for cat in result["categories"]:
@@ -132,7 +132,7 @@ class ContentGenerator:
         if self._categories is not None:
             if len(self._categories) >= min_count:
                 return self._categories
-            
+
         # Try loading from CSV
         if self.config.output_dir:
             csv_path = self.config.output_dir / "categories.csv"
@@ -147,7 +147,7 @@ class ContentGenerator:
         # Generate new categories
         existing_names = set() if not self._categories else {c.name for c in self._categories}
         categories = self._categories or []
-        
+
         # Keep generating until we have enough unique categories
         while len(categories) < min_count:
             new_categories = self._generate_categories(existing_names)
@@ -156,7 +156,7 @@ class ContentGenerator:
         # Assign IDs and export
         for i, cat in enumerate(categories):
             cat.id = i + 1
-        
+
         if self.config.output_dir:
             CsvExporter.export_categories(categories, self.config.output_dir / "categories.csv", self.config)
         self._categories = categories
@@ -174,7 +174,7 @@ class ContentGenerator:
                 if contents and len(contents) >= count:
                     self.logger.info(f"Reusing {count} items from {csv_path}")
                     return contents[:count]
-        
+
         # Fall back to default behavior
         file_path = Path(csv_path if csv_path else "contents.csv").resolve()
         self.logger.debug(f"Looking for contents file at: {file_path}")
@@ -182,7 +182,7 @@ class ContentGenerator:
         if contents and len(contents) >= count:
             self.logger.info(f"Reusing {count} items from {file_path}")
             return contents[:count]
-        
+
         return None
 
     def generate_contents(self, count: int, reuse_file: bool = True,
@@ -203,7 +203,7 @@ class ContentGenerator:
         """
         if count > 1000:
             raise ContentGenerationError("Cannot generate more than 1000 items")
-            
+
         if reuse_file:
             contents = self._try_load_contents(count, csv_path)
             if contents:
@@ -214,7 +214,7 @@ class ContentGenerator:
         self.logger.info(f"Using {len(categories)} categories")
         for cat in categories:
             self.logger.debug(f"Category: {cat.name} - {cat.description}")
-        
+
         contents = []
         for i in range(count):
             category = categories[i % len(categories)]
@@ -224,6 +224,6 @@ class ContentGenerator:
             )
             contents.append(content)
             self.logger.info(f"Progress: {len(contents)}/{count} items generated")
-        
+
         self.logger.info("Content generation completed")
         return contents

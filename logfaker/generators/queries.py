@@ -33,7 +33,7 @@ class QueryGenerator:
             SearchQuery object
         """
         self.logger.info(f"Generating query for user {user.user_id} with interests: {', '.join(user.preferences)}")
-        
+
         functions = [{
             "name": "create_query",
             "description": "Create an assumed realistic search keyword based on user interests",
@@ -68,7 +68,7 @@ class QueryGenerator:
             query_content=result["query_content"],
             category=result["category"]
         )
-        
+
         self.logger.info(f"Generated query: {query.query_content} (category: {query.category})")
         return query
 

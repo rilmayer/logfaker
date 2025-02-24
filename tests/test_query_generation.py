@@ -17,14 +17,14 @@ def test_query_generation(mock_openai_client):
     )
     generator = QueryGenerator(config)
     generator.client = mock_openai_client
-    
+
     user = UserProfile(
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
         preferences=["プログラミング", "AI"]
     )
-    
+
     query = generator.generate_query(user)
     assert query.query_content
     assert query.category
@@ -40,14 +40,14 @@ def test_multiple_query_generation(mock_openai_client):
     )
     generator = QueryGenerator(config)
     generator.client = mock_openai_client
-    
+
     user = UserProfile(
         user_id=1,
         brief_explanation="技術書が好きなエンジニア",
         profession="エンジニア",
         preferences=["プログラミング", "AI"]
     )
-    
+
     queries = generator.generate_queries(user, count=3)
     assert len(queries) == 3
     for i, query in enumerate(queries, 1):
