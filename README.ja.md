@@ -4,9 +4,27 @@ Logfakerは、検索エンジン向けの現実的なテストデータを生成
 
 ## インストールとセットアップ
 
-### 基本インストール
+### 必要要件
+
+- Python 3.12 以上
+- OpenAI API キー
+- Elasticsearch (オプション、検索機能を使用する場合)
+
+### インストール
+
+pip を使用してインストールできます：
 
 ```bash
+pip install logfaker
+```
+
+開発用インストール：
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/rilmayer/logfaker.git
+cd logfaker
+
 # Poetry を使用してインストール
 poetry install
 ```

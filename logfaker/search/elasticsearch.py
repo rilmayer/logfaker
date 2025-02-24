@@ -1,6 +1,6 @@
 """Elasticsearch implementation of search engine interface."""
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from elasticsearch import Elasticsearch
 
@@ -28,7 +28,9 @@ class ElasticsearchEngine(SearchEngine):
     ) -> List[SearchResult]:
         """Execute search query against Elasticsearch."""
         try:
-            analyzer = "kuromoji_analyzer" if self.config.language == "ja" else "standard"
+            analyzer = (
+                "kuromoji_analyzer" if self.config.language == "ja" else "standard"
+            )
             # Build search query
             search_body = {
                 "query": {
@@ -38,7 +40,7 @@ class ElasticsearchEngine(SearchEngine):
                                 "multi_match": {
                                     "query": query,
                                     "fields": ["title", "description", "abstract"],
-                                    "analyzer": analyzer
+                                    "analyzer": analyzer,
                                 }
                             }
                         ]
@@ -104,37 +106,39 @@ class ElasticsearchEngine(SearchEngine):
                                 "tokenizer": {
                                     "kuromoji_search_tokenizer": {
                                         "type": "kuromoji_tokenizer",
-                                        "mode": "search"
+                                        "mode": "search",
                                     }
                                 },
                                 "analyzer": {
                                     "kuromoji_analyzer": {
                                         "type": "custom",
                                         "tokenizer": "kuromoji_search_tokenizer",
-                                        "filter": ["kuromoji_baseform", "kuromoji_part_of_speech", "ja_stop"]
+                                        "filter": [
+                                            "kuromoji_baseform",
+                                            "kuromoji_part_of_speech",
+                                            "ja_stop",
+                                        ],
                                     }
-                                }
+                                },
                             }
                         },
                         "mappings": {
                             "properties": {
                                 "title": {
                                     "type": "text",
-                                    "analyzer": "kuromoji_analyzer"
+                                    "analyzer": "kuromoji_analyzer",
                                 },
                                 "description": {
                                     "type": "text",
-                                    "analyzer": "kuromoji_analyzer"
+                                    "analyzer": "kuromoji_analyzer",
                                 },
                                 "abstract": {
                                     "type": "text",
-                                    "analyzer": "kuromoji_analyzer"
+                                    "analyzer": "kuromoji_analyzer",
                                 },
-                                "category": {
-                                    "type": "keyword"
-                                }
+                                "category": {"type": "keyword"},
                             }
-                        }
+                        },
                     }
                 else:
                     index_body = {}  # デフォルトの設定を使用

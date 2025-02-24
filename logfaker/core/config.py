@@ -1,7 +1,7 @@
 """Configuration settings for Logfaker."""
 
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -23,7 +23,9 @@ class SearchEngineConfig(BaseModel):
 class GeneratorConfig(BaseModel):
     """Configuration for data generation."""
 
-    ai_model: str = Field(default="gpt-4o-mini", description="AI model to use for generation")
+    ai_model: str = Field(
+        default="gpt-4o-mini", description="AI model to use for generation"
+    )
     api_key: Optional[str] = Field(None, description="API key for AI service")
     max_results: int = Field(
         default=10, description="Maximum number of results per query"
@@ -31,12 +33,12 @@ class GeneratorConfig(BaseModel):
     language: str = Field(default="en", description="Primary language for generation")
     service_type: str = Field(
         default="Book search service",
-        description="Type of search service (e.g., library catalog)"
+        description="Type of search service (e.g., library catalog)",
     )
     log_level: str = Field(default="INFO", description="Logging level for generators")
     output_dir: Optional[Path] = Field(
         default=None,
-        description="Directory for output files. If None, uses current directory"
+        description="Directory for output files. If None, uses current directory",
     )
 
 
@@ -60,7 +62,7 @@ class LogfakerConfig(BaseModel):
             max_results=10,
             language="en",
             service_type="Book search service",
-            log_level="INFO"
+            log_level="INFO",
         )
     )
     catalog_type: str = Field(
@@ -68,5 +70,5 @@ class LogfakerConfig(BaseModel):
     )
     output_dir: Optional[Path] = Field(
         default=None,
-        description="Directory for all output files. If None, uses current directory"
+        description="Directory for all output files. If None, uses current directory",
     )

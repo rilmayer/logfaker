@@ -25,7 +25,9 @@ class UserGenerator:
         self.logger.setLevel(getattr(logging, config.log_level))
         self.content_generator = ContentGenerator(config)
 
-    def validate_preferences(self, preferences: List[str], category_names: List[str]) -> List[str]:
+    def validate_preferences(
+        self, preferences: List[str], category_names: List[str]
+    ) -> List[str]:
         """Validate and filter preferences to match category names."""
         valid_preferences = [pref for pref in preferences if pref in category_names]
         if not valid_preferences:
@@ -47,59 +49,57 @@ class UserGenerator:
         Returns:
             UserProfile object with generated data
         """
-        self.logger.info("Generating user profile %d for %s", user_id, self.config.service_type)
+        self.logger.info(
+            "Generating user profile %d for %s", user_id, self.config.service_type
+        )
         categories = self.content_generator._load_or_generate_categories()
         category_names = [cat.name for cat in categories]
-        functions = [{
-            "name": "create_user",
-            "description": "Create user profile",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "brief_explanation": {
-                        "type": "string",
-                        "description": (
-                            "Brief explanation of the user's interests and how they use "
-                            "the search service."
-                        )
-                    },
-                    "profession": {
-                        "type": "string",
-                        "description": "User's profession"
-                    },
-                    "preferences": {
-                        "type": "array",
-                        "items": {
+        functions = [
+            {
+                "name": "create_user",
+                "description": "Create user profile",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "brief_explanation": {
                             "type": "string",
-                            "enum": category_names
+                            "description": (
+                                "Brief explanation of the user's interests and how they use "
+                                "the search service."
+                            ),
                         },
-                        "minItems": 1,
-                        "description": (
-                            f"Must be one of: "
-                            f"{', '.join(category_names)}"
-                        )
-                    }
+                        "profession": {
+                            "type": "string",
+                            "description": "User's profession",
+                        },
+                        "preferences": {
+                            "type": "array",
+                            "items": {"type": "string", "enum": category_names},
+                            "minItems": 1,
+                            "description": (
+                                f"Must be one of: " f"{', '.join(category_names)}"
+                            ),
+                        },
+                    },
+                    "required": ["brief_explanation", "profession", "preferences"],
                 },
-                "required": [
-                    "brief_explanation",
-                    "profession",
-                    "preferences"
-                ]
             }
-        }]
-        self.logger.debug("Available categories: %s", ', '.join(category_names))
+        ]
+        self.logger.debug("Available categories: %s", ", ".join(category_names))
         response = self.client.chat.completions.create(
             model=self.config.ai_model,
-            messages=[{
-                "role": "system",
-                "content": (
-                    f"Generate a brief third-person introduction of a user profile explaining "
-                    f"how they use '{self.config.service_type}' in {self.config.language}. "
-                    f"User is interested in {random.choice(category_names)}."
-                )
-            }],
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        f"Generate a brief third-person introduction of a user profile explaining "
+                        f"how they use '{self.config.service_type}' in {self.config.language}. "
+                        f"User is interested in {random.choice(category_names)}."
+                    ),
+                }
+            ],
             functions=functions,
-            function_call={"name": "create_user"}
+            function_call={"name": "create_user"},
         )
 
         # Parse response and handle potential JSON parsing issues
@@ -114,7 +114,9 @@ class UserGenerator:
             self.logger.debug("Result type: %s", type(result))
             self.logger.debug("Result keys: %s", list(result.keys()))
 
-            preferences = self.validate_preferences(result["preferences"], category_names)
+            preferences = self.validate_preferences(
+                result["preferences"], category_names
+            )
         except (json.JSONDecodeError, KeyError) as e:
             self.logger.error("Failed to parse response: %s", e)
             self.logger.error("Response type: %s", type(args_str))
@@ -125,66 +127,38 @@ class UserGenerator:
             user_id=user_id,
             brief_explanation=result["brief_explanation"],
             profession=result["profession"],
-            preferences=preferences
+            preferences=preferences,
         )
 
-        self.logger.info("Generated user %d with %d interests", user_id, len(user.preferences))
-        self.logger.debug("User interests: %s", ', '.join(user.preferences))
+        self.logger.info(
+            "Generated user %d with %d interests", user_id, len(user.preferences)
+        )
+        self.logger.debug("User interests: %s", ", ".join(user.preferences))
         return user
 
     def generate_users(
         self,
         count: int,
         reuse_file: bool = True,
-        csv_path: Optional[Union[str, Path]] = None
+        csv_path: Optional[Union[str, Path]] = None,
     ) -> List[UserProfile]:
-        """
-        Generate multiple user profiles.
+        """Generate multiple user profiles."""
+        from logfaker.utils.csv import CsvExporter
 
-        Args:
-            count: Number of users to generate
-            reuse_file: If True, try to load from users.csv first
-            csv_path: Optional path to users.csv file. If not provided,
-                uses output_dir/users.csv or users.csv
-
-        Returns:
-            List of UserProfile objects
-        """
         if reuse_file:
-            # Try output_dir first if no specific path provided
-            has_output_dir = (
-                csv_path is None and
-                hasattr(self.config, 'output_dir') and
-                self.config.output_dir
+            # Resolve path using CsvExporter
+            file_path = CsvExporter._resolve_path(
+                csv_path if csv_path else "users.csv", self.config
             )
-            if has_output_dir:
-                csv_path = self.config.output_dir / "users.csv"
-                if csv_path.exists():
-                    self.logger.info(
-                        "Checking output directory: %s", csv_path
-                    )
-                    categories = (
-                        self.content_generator._load_or_generate_categories()
-                    )
-                    users = CsvImporter.import_users(
-                        csv_path, categories
-                    )
-                    if users and len(users) >= count:
-                        self.logger.info(
-                            "Reusing %d profiles from %s", count, csv_path
-                        )
-                        return users[:count]
 
-            # Fall back to default behavior
-            file_path = Path(
-                csv_path if csv_path else "users.csv"
-            ).resolve()
             self.logger.debug("Looking for users file at: %s", file_path)
-            categories = self.content_generator._load_or_generate_categories()
-            users = CsvImporter.import_users(file_path, categories)
-            if users and len(users) >= count:
-                self.logger.info("Reusing %d profiles from %s", count, file_path)
-                return users[:count]
+            if file_path.exists():
+                categories = self.content_generator._load_or_generate_categories()
+                users = CsvImporter.import_users(file_path, categories)
+                if users and len(users) >= count:
+                    self.logger.info("Reusing %d profiles from %s", count, file_path)
+                    return users[:count]
+
         self.logger.info("Generating %d user profiles", count)
         users = [self.generate_user(i + 1) for i in range(count)]
         self.logger.info("Generated %d user profiles", len(users))

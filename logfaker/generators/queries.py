@@ -1,9 +1,9 @@
 """Query generation based on user profiles and content."""
 
 import json
-import random
 import logging
-from typing import List, Optional
+import random
+from typing import List
 
 from openai import OpenAI
 
@@ -32,33 +32,45 @@ class QueryGenerator:
         Returns:
             SearchQuery object
         """
-        self.logger.info(f"Generating query for user {user.user_id} with interests: {', '.join(user.preferences)}")
+        self.logger.info(
+            f"Generating query for user {user.user_id} with interests: {', '.join(user.preferences)}"
+        )
 
-        functions = [{
-            "name": "create_query",
-            "description": "Create an assumed realistic search keyword based on user interests",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query_content": {"type": "string", "description": "Search keyword"},
-                    "category": {"type": "string", "description": "Theme of the search keyword based on the user needs" }
+        functions = [
+            {
+                "name": "create_query",
+                "description": "Create an assumed realistic search keyword based on user interests",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query_content": {
+                            "type": "string",
+                            "description": "Search keyword",
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Theme of the search keyword based on the user needs",
+                        },
+                    },
+                    "required": ["query_content", "category"],
                 },
-                "required": ["query_content", "category"]
             }
-        }]
+        ]
 
         response = self.client.chat.completions.create(
             model=self.config.ai_model,
-            messages=[{
-                "role": "system",
-                "content": (
-                    f"Generate a search query in {self.config.language}. "
-                    f"User interests: {random.choice(user.preferences)}. "
-                    f"User background: {user.brief_explanation}"
-                )
-            }],
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        f"Generate a search query in {self.config.language}. "
+                        f"User interests: {random.choice(user.preferences)}. "
+                        f"User background: {user.brief_explanation}"
+                    ),
+                }
+            ],
             functions=functions,
-            function_call={"name": "create_query"}
+            function_call={"name": "create_query"},
         )
 
         result = json.loads(response.choices[0].message.function_call.arguments)
@@ -66,10 +78,12 @@ class QueryGenerator:
             query_id=query_id,
             user_id=user.user_id,
             query_content=result["query_content"],
-            category=result["category"]
+            category=result["category"],
         )
 
-        self.logger.info(f"Generated query: {query.query_content} (category: {query.category})")
+        self.logger.info(
+            f"Generated query: {query.query_content} (category: {query.category})"
+        )
         return query
 
     def generate_queries(self, user: UserProfile, count: int) -> List[SearchQuery]:

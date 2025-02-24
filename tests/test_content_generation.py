@@ -1,13 +1,13 @@
 """Tests for content generation functionality."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from logfaker.core.config import GeneratorConfig
 from logfaker.core.exceptions import ContentGenerationError
 from logfaker.generators.content import ContentGenerator
+
 
 @pytest.fixture(autouse=True)
 def cleanup_categories():
@@ -30,7 +30,7 @@ def test_category_generation(mock_openai_client, tmp_path):
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
         language="ja",
-        output_dir=tmp_path
+        output_dir=tmp_path,
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -52,7 +52,7 @@ def test_content_generation_limits(mock_openai_client, tmp_path):
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
         language="ja",
-        output_dir=tmp_path
+        output_dir=tmp_path,
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -62,8 +62,8 @@ def test_content_generation_limits(mock_openai_client, tmp_path):
         generator.generate_contents(1001)
 
     # Should work for exactly 50 items
-    contents = generator.generate_contents(50)
-    assert len(contents) == 50
+    result = generator.generate_contents(50)
+    assert len(result) == 50
 
 
 def test_content_generation_output(mock_openai_client, tmp_path):
@@ -72,7 +72,7 @@ def test_content_generation_output(mock_openai_client, tmp_path):
         api_key="test-key",
         service_type="図書館の蔵書検索サービス",
         language="ja",
-        output_dir=tmp_path
+        output_dir=tmp_path,
     )
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
@@ -91,10 +91,7 @@ def test_content_generation_output(mock_openai_client, tmp_path):
 
 def test_category_persistence(tmp_path, mock_openai_client):
     """Test that categories are properly persisted and reused."""
-    config = GeneratorConfig(
-        api_key="test-key",
-        output_dir=tmp_path
-    )
+    config = GeneratorConfig(api_key="test-key", output_dir=tmp_path)
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
 
@@ -113,15 +110,12 @@ def test_category_persistence(tmp_path, mock_openai_client):
 
 def test_category_regeneration(tmp_path, mock_openai_client):
     """Test that categories are regenerated when count is insufficient."""
-    config = GeneratorConfig(
-        api_key="test-key",
-        output_dir=tmp_path
-    )
+    config = GeneratorConfig(api_key="test-key", output_dir=tmp_path)
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
 
     # Generate initial small set
-    contents = generator.generate_contents(5)
+    generator.generate_contents(5)
 
     # Generate larger set - should trigger regeneration
     contents2 = generator.generate_contents(150)
@@ -130,10 +124,7 @@ def test_category_regeneration(tmp_path, mock_openai_client):
 
 def test_category_cycling(tmp_path, mock_openai_client):
     """Test that categories are cycled through when generating content."""
-    config = GeneratorConfig(
-        api_key="test-key",
-        output_dir=tmp_path
-    )
+    config = GeneratorConfig(api_key="test-key", output_dir=tmp_path)
 
     generator = ContentGenerator(config)
     generator.client = mock_openai_client
