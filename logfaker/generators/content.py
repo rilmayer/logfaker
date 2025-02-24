@@ -65,8 +65,11 @@ class ContentGenerator:
                 "role": "system",
                 "content": (
                     f"Generate approximately 100 categories for {self.config.service_type} in {self.config.language}. "
-                    f"Categories should be diverse and cover all potential content types. "
-                    + (f"Avoid these existing categories: {', '.join(existing_names)}" if existing_names else "")
+                    f"Categories should be diverse and cover all potential content types.\n\n"
+                    + (f"IMPORTANT: The following categories already exist. You MUST NOT generate any categories that are similar to these:\n"
+                       f"{', '.join(f'- {name}' for name in existing_names)}\n\n"
+                       f"Generate completely different categories that cover other areas not mentioned above."
+                       if existing_names else "")
                 )
             }],
             functions=functions,
