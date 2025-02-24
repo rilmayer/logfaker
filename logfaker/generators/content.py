@@ -5,6 +5,9 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Union
 
+from logfaker.utils.csv import CsvExporter
+from logfaker.utils.importer import CsvImporter
+
 from openai import OpenAI
 
 from logfaker.core.config import GeneratorConfig
@@ -22,10 +25,14 @@ class ContentGenerator:
         self.client = OpenAI(api_key=config.api_key)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(getattr(logging, config.log_level))
+        self._categories: Optional[List[Category]] = None
 
-    def _generate_categories(self) -> List[Category]:
+    def _generate_categories(self, existing_names: Optional[set[str]] = None) -> List[Category]:
         """
         Generate categories using function calling.
+
+        Args:
+            existing_names: Set of category names to avoid duplicates
 
         Returns:
             List of Category objects
@@ -63,7 +70,13 @@ class ContentGenerator:
         )
         
         result = json.loads(response.choices[0].message.function_call.arguments)
-        return [Category(**cat) for cat in result["categories"]]
+        categories = []
+        for cat in result["categories"]:
+            if not existing_names or cat["name"] not in existing_names:
+                categories.append(Category(id=0, **cat))  # ID will be assigned later
+                if existing_names is not None:
+                    existing_names.add(cat["name"])
+        return categories
 
     def _generate_content_for_category(self, category: Category, content_id: int) -> Content:
         """
@@ -107,6 +120,61 @@ class ContentGenerator:
             category=category.name
         )
 
+    def _load_or_generate_categories(self, min_count: int = 100) -> List[Category]:
+        """Load categories from CSV or generate new ones."""
+        if self._categories is not None:
+            if len(self._categories) >= min_count:
+                return self._categories
+            
+        # Try loading from CSV
+        csv_path = self.config.output_dir / "categories.csv" if self.config.output_dir else Path("categories.csv")
+        if csv_path.exists():
+            categories = CsvImporter.import_categories(csv_path)
+            if categories and len(categories) >= min_count:
+                self._categories = categories
+                return categories
+
+        # Generate new categories
+        existing_names = set() if not self._categories else {c.name for c in self._categories}
+        new_categories = self._generate_categories(existing_names)
+        
+        # Combine with existing categories if any
+        if self._categories:
+            categories = self._categories + new_categories
+        else:
+            categories = new_categories
+
+        # Assign IDs and export
+        for i, cat in enumerate(categories):
+            cat.id = i + 1
+        
+        CsvExporter.export_categories(categories, csv_path, self.config)
+        self._categories = categories
+        return categories
+
+
+    def _try_load_contents(self, count: int, csv_path: Optional[Union[str, Path]] = None) -> Optional[List[Content]]:
+        """Try to load contents from CSV file."""
+        # Try output_dir first if no specific path provided
+        if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
+            csv_path = self.config.output_dir / "contents.csv"
+            if csv_path.exists():
+                self.logger.info(f"Checking output directory: {csv_path}")
+                contents = CsvImporter.import_content(csv_path)
+                if contents and len(contents) >= count:
+                    self.logger.info(f"Reusing {count} items from {csv_path}")
+                    return contents[:count]
+        
+        # Fall back to default behavior
+        file_path = Path(csv_path if csv_path else "contents.csv").resolve()
+        self.logger.debug(f"Looking for contents file at: {file_path}")
+        contents = CsvImporter.import_content(file_path)
+        if contents and len(contents) >= count:
+            self.logger.info(f"Reusing {count} items from {file_path}")
+            return contents[:count]
+        
+        return None
+
     def generate_contents(self, count: int, reuse_file: bool = True,
                       csv_path: Optional[Union[str, Path]] = None) -> List[Content]:
         """
@@ -127,33 +195,15 @@ class ContentGenerator:
             raise ContentGenerationError("Cannot generate more than 1000 items")
             
         if reuse_file:
-            # Try output_dir first if no specific path provided
-            if csv_path is None and hasattr(self.config, 'output_dir') and self.config.output_dir:
-                csv_path = self.config.output_dir / "contents.csv"
-                if csv_path.exists():
-                    self.logger.info(f"Checking output directory: {csv_path}")
-                    contents = CsvImporter.import_content(csv_path)
-                    if contents and len(contents) >= count:
-                        self.logger.info(f"Reusing {count} items from {csv_path}")
-                        return contents[:count]
-            
-            # Fall back to default behavior
-            file_path = Path(csv_path if csv_path else "contents.csv").resolve()
-            self.logger.debug(f"Looking for contents file at: {file_path}")
-            contents = CsvImporter.import_content(file_path)
-            if contents and len(contents) >= count:
-                self.logger.info(f"Reusing {count} items from {file_path}")
-                return contents[:count]
+            contents = self._try_load_contents(count, csv_path)
+            if contents:
+                return contents
 
         self.logger.info(f"Starting content generation for {self.config.service_type}")
-        categories = self._generate_categories()
-        self.logger.info(f"Generated {len(categories)} categories")
+        categories = self._load_or_generate_categories()
+        self.logger.info(f"Using {len(categories)} categories")
         for cat in categories:
             self.logger.debug(f"Category: {cat.name} - {cat.description}")
-
-        # Generate only as many categories as needed
-        categories = categories[:count]
-        self.logger.info(f"Using {len(categories)} categories")
         
         contents = []
         for i in range(count):

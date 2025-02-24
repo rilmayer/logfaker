@@ -82,8 +82,8 @@ def test_user_file_reuse(mock_openai_client, tmp_path, monkeypatch):
     
     # Create test categories
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍"),
-        Category(name="文学", description="小説や詩集")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+        Category(id=2, name="文学", description="小説や詩集")
     ]
     
     # Generate and save users
@@ -157,8 +157,8 @@ def test_output_directory_reuse(mock_openai_client, tmp_path):
     
     # Test user reuse from output directory
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍"),
-        Category(name="文学", description="小説や詩集")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+        Category(id=2, name="文学", description="小説や詩集")
     ]
     user_gen = UserGenerator(gen_config)
     

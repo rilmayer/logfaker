@@ -13,6 +13,24 @@ class CsvImporter:
     """Handles importing data from CSV files."""
 
     @staticmethod
+    def import_categories(input_path: Union[str, Path]) -> Optional[List[Category]]:
+        """Import categories from CSV."""
+        try:
+            categories = []
+            with open(input_path, "r", newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    category = Category(
+                        id=int(row["Category ID"]),
+                        name=row["Name"],
+                        description=row["Description"]
+                    )
+                    categories.append(category)
+            return categories
+        except (FileNotFoundError, KeyError):
+            return None
+
+    @staticmethod
     def import_content(input_path: Union[str, Path]) -> Optional[List[Content]]:
         """Import content from CSV."""
         try:

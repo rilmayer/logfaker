@@ -20,9 +20,9 @@ def test_openai_user_generation():
     
     # Create test categories
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍"),
-        Category(name="文学", description="小説や詩集"),
-        Category(name="ビジネス", description="ビジネスと経営の書籍")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+        Category(id=2, name="文学", description="小説や詩集"),
+        Category(id=3, name="ビジネス", description="ビジネスと経営の書籍")
     ]
     
     generator = UserGenerator(config)
@@ -49,8 +49,8 @@ def test_openai_multiple_user_generation():
     )
     
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍"),
-        Category(name="文学", description="小説や詩集")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+        Category(id=2, name="文学", description="小説や詩集")
     ]
     
     generator = UserGenerator(config)
@@ -73,8 +73,8 @@ def test_user_generation_file_reuse(tmp_path):
     )
     
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍"),
-        Category(name="文学", description="小説や詩集")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+        Category(id=2, name="文学", description="小説や詩集")
     ]
     
     generator = UserGenerator(config)
@@ -116,7 +116,7 @@ def test_openai_user_generation_error_handling():
     )
     
     categories = [
-        Category(name="テクノロジー", description="技術関連の書籍")
+        Category(id=1, name="テクノロジー", description="技術関連の書籍")
     ]
     
     generator = UserGenerator(config)
@@ -135,9 +135,9 @@ def test_openai_user_generation_error_handling():
 #     )
 #     generator = UserGenerator(config)
 #     categories = [
-#         Category(name="テクノロジー", description="技術関連の書籍"),
-#         Category(name="文学", description="小説や詩集"),
-#         Category(name="ビジネス", description="ビジネスと経営の書籍")
+#         Category(id=1, name="テクノロジー", description="技術関連の書籍"),
+#         Category(id=2, name="文学", description="小説や詩集"),
+#         Category(id=3, name="ビジネス", description="ビジネスと経営の書籍")
 #     ]
 #     users = generator.generate_users(count=3, categories=categories, reuse_file=False)
 #     for user in users:

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 class Category(BaseModel):
     """Model for content categories."""
 
+    id: int = Field(description="Unique identifier for the category")
     name: str = Field(description="Category name")
     description: str = Field(description="Category description")
 
