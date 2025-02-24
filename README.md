@@ -6,9 +6,27 @@ Logfaker is a tool for generating realistic test data for search engines. It gen
 
 ## Installation & Setup
 
-### Basic Installation
+### Requirements
+
+- Python 3.12 or higher
+- OpenAI API key
+- Elasticsearch (optional, for search functionality)
+
+### Installation
+
+You can install logfaker using pip:
 
 ```bash
+pip install logfaker
+```
+
+For development installation:
+
+```bash
+# Clone the repository
+git clone https://github.com/rilmayer/logfaker.git
+cd logfaker
+
 # Install using Poetry
 poetry install
 ```
