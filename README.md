@@ -101,11 +101,11 @@ The package can reuse previously generated content and user profiles from CSV fi
 contents = content_gen.generate_contents(count=50, reuse_file=True)  # Default: reuse_file=True
 
 # Generate users (will reuse users.csv if it exists)
-users = user_gen.generate_users(count=10, categories=categories, reuse_file=True)
+users = user_gen.generate_users(count=10, reuse_file=True)
 
 # Force regeneration by setting reuse_file=False
 contents = content_gen.generate_contents(count=50, reuse_file=False)
-users = user_gen.generate_users(count=10, categories=categories, reuse_file=False)
+users = user_gen.generate_users(count=10, reuse_file=False)
 ```
 
 ## Usage Example (使用例)
@@ -142,10 +142,9 @@ if not es.setup_index(force=True):
 for content in contents:
     es.index_content(content.content_id, content.dict())
 
-# カテゴリ一覧を取得してユーザー生成に利用
-categories = content_gen._generate_categories()
+# ユーザー生成
 user_gen = UserGenerator(config.generator)
-users = user_gen.generate_users(count=10, categories=categories)  # カテゴリに基づいて10人のユーザーを生成
+users = user_gen.generate_users(count=10)  # 10人のユーザーを生成
 
 # ユーザーの興味に基づいて検索クエリを生成
 query_gen = QueryGenerator(config.generator)

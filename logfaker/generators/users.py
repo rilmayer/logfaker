@@ -9,7 +9,8 @@ from typing import List, Optional, Union
 from openai import OpenAI
 
 from logfaker.core.config import GeneratorConfig
-from logfaker.core.models import Category, UserProfile
+from logfaker.core.models import UserProfile
+from logfaker.generators.content import ContentGenerator
 from logfaker.utils.importer import CsvImporter
 
 
@@ -22,10 +23,10 @@ class UserGenerator:
         self.client = OpenAI(api_key=config.api_key)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(getattr(logging, config.log_level))
+        self.content_generator = ContentGenerator(config)
 
-    def validate_preferences(self, preferences: List[str], categories: List[Category]) -> List[str]:
+    def validate_preferences(self, preferences: List[str], category_names: List[str]) -> List[str]:
         """Validate and filter preferences to match category names."""
-        category_names = [cat.name for cat in categories]
         valid_preferences = [pref for pref in preferences if pref in category_names]
         if not valid_preferences:
             self.logger.warning("No valid preferences found, using first category")
@@ -36,12 +37,11 @@ class UserGenerator:
                 self.logger.warning(f"Filtered out invalid preferences: {invalid}")
         return valid_preferences
 
-    def generate_user(self, categories: List[Category], user_id: int = 1) -> UserProfile:
+    def generate_user(self, user_id: int = 1) -> UserProfile:
         """
-        Generate a single user profile with interests from categories.
+        Generate a single user profile with interests.
 
         Args:
-            categories: List of available categories to choose interests from
             user_id: Unique identifier for the user
 
         Returns:
@@ -49,6 +49,7 @@ class UserGenerator:
         """
         self.logger.info(f"Generating user profile {user_id} for {self.config.service_type}")
         
+        categories = self.content_generator._load_or_generate_categories()
         category_names = [cat.name for cat in categories]
         
         functions = [{
@@ -87,8 +88,24 @@ class UserGenerator:
             function_call={"name": "create_user"}
         )
 
-        result = json.loads(response.choices[0].message.function_call.arguments)
-        preferences = self.validate_preferences(result["preferences"], categories)
+        # Parse response and handle potential JSON parsing issues
+        try:
+            args_str = response.choices[0].message.function_call.arguments
+            self.logger.debug(f"Raw response arguments: {args_str}")
+            self.logger.debug(f"Response type: {type(args_str)}")
+            self.logger.debug(f"Response repr: {repr(args_str)}")
+            
+            result = json.loads(args_str)
+            self.logger.debug(f"Parsed response: {result}")
+            self.logger.debug(f"Result type: {type(result)}")
+            self.logger.debug(f"Result keys: {list(result.keys())}")
+            
+            preferences = self.validate_preferences(result["preferences"], category_names)
+        except (json.JSONDecodeError, KeyError) as e:
+            self.logger.error(f"Failed to parse response: {e}")
+            self.logger.error(f"Response type: {type(args_str)}")
+            self.logger.error(f"Response repr: {repr(args_str)}")
+            raise
         
         user = UserProfile(
             user_id=user_id,
@@ -101,14 +118,13 @@ class UserGenerator:
         self.logger.debug(f"User interests: {', '.join(user.preferences)}")
         return user
 
-    def generate_users(self, count: int, categories: List[Category], reuse_file: bool = True,
+    def generate_users(self, count: int, reuse_file: bool = True,
                       csv_path: Optional[Union[str, Path]] = None) -> List[UserProfile]:
         """
         Generate multiple user profiles.
 
         Args:
             count: Number of users to generate
-            categories: List of available categories to choose interests from
             reuse_file: If True, try to load from users.csv first
             csv_path: Optional path to users.csv file. If not provided, uses output_dir/users.csv or users.csv
 
@@ -121,6 +137,7 @@ class UserGenerator:
                 csv_path = self.config.output_dir / "users.csv"
                 if csv_path.exists():
                     self.logger.info(f"Checking output directory: {csv_path}")
+                    categories = self.content_generator._load_or_generate_categories()
                     users = CsvImporter.import_users(csv_path, categories)
                     if users and len(users) >= count:
                         self.logger.info(f"Reusing {count} profiles from {csv_path}")
@@ -129,11 +146,12 @@ class UserGenerator:
             # Fall back to default behavior
             file_path = Path(csv_path if csv_path else "users.csv").resolve()
             self.logger.debug(f"Looking for users file at: {file_path}")
+            categories = self.content_generator._load_or_generate_categories()
             users = CsvImporter.import_users(file_path, categories)
             if users and len(users) >= count:
                 self.logger.info(f"Reusing {count} profiles from {file_path}")
                 return users[:count]
         self.logger.info(f"Generating {count} user profiles")
-        users = [self.generate_user(categories, i + 1) for i in range(count)]
+        users = [self.generate_user(i + 1) for i in range(count)]
         self.logger.info(f"Generated {len(users)} user profiles")
         return users
