@@ -65,7 +65,6 @@ class ElasticsearchEngine(SearchEngine):
                 SearchResult(
                     content_id=int(hit.get("_id", 0)),
                     title=hit.get("_source", {}).get("title", ""),
-                    url=f"https://example.com/content/{hit.get('_id', 0)}",
                     relevance_score=float(hit.get("_score", 0.0)),
                 )
                 for hit in hits

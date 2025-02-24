@@ -48,7 +48,6 @@ class SearchResult(BaseModel):
 
     content_id: int = Field(description="ID of the content in results")
     title: str = Field(description="Title of the content")
-    url: str = Field(description="URL to the content")
     relevance_score: Optional[float] = Field(None, description="Search relevance score")
 
 
