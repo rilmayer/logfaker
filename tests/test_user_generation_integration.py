@@ -110,7 +110,7 @@ def test_user_generation_file_reuse(tmp_path):
 def test_openai_user_generation_error_handling():
     """Test error handling with invalid API key."""
     config = GeneratorConfig(
-        api_key="invalid-key",
+        api_key=os.getenv("OPENAI_API_KEY"),
         service_type="図書館の蔵書検索サービス",
         language="ja"
     )
