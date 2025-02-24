@@ -63,7 +63,11 @@ class ContentGenerator:
             model=self.config.ai_model,
             messages=[{
                 "role": "system",
-                "content": f"Generate approximately 100 categories for {self.config.service_type} in {self.config.language}. Categories should be diverse and cover all potential content types."
+                "content": (
+                    f"Generate approximately 100 categories for {self.config.service_type} in {self.config.language}. "
+                    f"Categories should be diverse and cover all potential content types. "
+                    + (f"Avoid these existing categories: {', '.join(existing_names)}" if existing_names else "")
+                )
             }],
             functions=functions,
             function_call={"name": "create_categories"}
@@ -136,13 +140,12 @@ class ContentGenerator:
 
         # Generate new categories
         existing_names = set() if not self._categories else {c.name for c in self._categories}
-        new_categories = self._generate_categories(existing_names)
+        categories = self._categories or []
         
-        # Combine with existing categories if any
-        if self._categories:
-            categories = self._categories + new_categories
-        else:
-            categories = new_categories
+        # Keep generating until we have enough unique categories
+        while len(categories) < min_count:
+            new_categories = self._generate_categories(existing_names)
+            categories.extend(new_categories)
 
         # Assign IDs and export
         for i, cat in enumerate(categories):
