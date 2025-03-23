@@ -8,7 +8,7 @@ Logfaker is a tool for generating realistic test data for search engines. It gen
 
 ### Requirements
 
-- Python 3.12 or higher
+- Python 3.8 or higher
 - OpenAI API key
 - Elasticsearch (optional, for search functionality)
 
