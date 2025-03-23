@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Set, Union
 
 from openai import OpenAI
 
@@ -26,7 +26,7 @@ class ContentGenerator:
         self._categories: Optional[List[Category]] = None
 
     def _generate_categories(
-        self, existing_names: Optional[set[str]] = None
+        self, existing_names: Optional[Set[str]] = None
     ) -> List[Category]:
         """
         Generate categories using function calling.

@@ -6,7 +6,7 @@ Logfakerは、検索エンジン向けの現実的なテストデータを生成
 
 ### 必要要件
 
-- Python 3.12 以上
+- Python 3.8 以上
 - OpenAI API キー
 - Elasticsearch (オプション、検索機能を使用する場合)
 
