@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "logfaker"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generate realistic test data for search engines, focusing on library catalog search systems"
 authors = ["rilmayer"]
 license = "MIT"
